@@ -1,0 +1,57 @@
+Order vegetable seeds for garden @home +gardening due:2025-05-09
+x Submit expense report @work +admin
+(E) Organize digital photo collection @personal +organization
+Research new smartphone models @tech +shopping
+Update software on all devices @tech +maintenance
+(B) Buy anniversary gift for spouse @personal +gifts due:2025-05-15
+Review insurance policies @finance +admin
+(C) Call plumber about kitchen sink @home +maintenance
+Schedule annual physical @health +medical due:2025-07-15
+Schedule haircut @personal +appearance
+Donate unused clothes @personal +declutter
+(E) Plan team building activity @work +management due:2025-05-25
+Review quarterly goals @work +planning
+Clean garage @home +cleaning
+Scan old family photos @personal +memories
+Setup automatic bill payments @finance +automation
+x Return library books @errands +tasks
+Setup home security system @home +security
+Create monthly budget template @finance +planning
+(A) Submit final project report @work +thesis
+Update project timeline @work +planning due:2025-05-11
+Research investment options @finance +planning
+Reorganize kitchen cabinets @home +organization
+Buy birthday gift for nephew @personal +gifts due:2025-06-10
+Order office supplies @work +admin
+Start jogging routine @health +exercise
+Complete online certification course @career +learning due:2025-07-01
+Research healthy lunch recipes @health +cooking
+Call mom on her birthday @personal +family due:2025-06-05
+x Buy groceries for the week @errands +shopping
+(D) Research summer vacation options @personal +travel due:2025-06-30
+(B) Prepare presentation slides for client meeting @work +presentation due:2025-05-12
+Setup weekly team meetings @work +management
+(C) Update resume with recent achievements @career +documents
+Schedule vet appointment for dog @pets +health due:2025-05-22
+x Pay electricity bill @finance +bills
+Backup computer files @tech +maintenance due:2025-05-10
+Fix broken shelf in bathroom @home +repairs
+Learn Spanish basics @personal +learning
+Clean refrigerator @home +cleaning
+(C) Send thank you cards @personal +correspondence due:2025-05-20
+(D) Schedule car maintenance @errands +car
+(B) Review quarterly budget @finance +work
+Plan weekend hiking trip @personal +outdoors due:2025-06-12
+Organize bookshelf @home +organization
+Check tire pressure on car @errands +car
+(A) Schedule dentist appointment @health +medical due:2025-06-01
+Renew library books @personal +reading due:2025-05-14
+x 2025-05-07 Schedule dental cleaning @health +medical due:2025-05-05
+Write blog post about recent project @work +writing due:2025-05-18
+Water plants @home +gardening
+--
+Notes about upcoming projects:
+* Summer garden planning
+* Office renovation in July
+* Team retreat in August
+* Budget review in September

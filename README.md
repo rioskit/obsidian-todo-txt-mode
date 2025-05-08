@@ -1,94 +1,211 @@
-# Obsidian Sample Plugin
+# Todo.txt Mode for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Todo.txt Mode is an Obsidian plugin that provides support for the [todo.txt](https://github.com/todotxt/todo.txt) file format in [Obsidian](https://obsidian.md).
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+[![Image from Gyazo](https://i.gyazo.com/63a9c805d766d5db066bcc1f2edf2ef5.png)](https://gyazo.com/63a9c805d766d5db066bcc1f2edf2ef5)
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## Features
 
-## First time developing plugins?
+- **Syntax Highlighting**: Automatically highlights elements within todo.txt files
+  - Strikethrough for completed tasks (lines beginning with `x `)
+  - Highlighting for project tags (`+project`)
+  - Highlighting for context tags (`@context`)
+  - Highlighting for priority markers (`(A)`, `(B)`, `(123)`)
+  - Highlighting for due dates (`due:yyyy-mm-dd`)
+  - **Color Customization**: Customize colors with the [Style Settings Plugin](https://github.com/mgmeyers/obsidian-style-settings)
 
-Quick starting guide for new plugin devs:
+- **Task Management**: 
+  - Command to move completed tasks to a dedicated file
+  - Extracts completed tasks (lines beginning with `x `)
+  - Removes them from the original file
+  - Adds them to the top of the specified done file (newest tasks at the top)
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+- **Task Sorting**:
+  - Sort by priority
+  - Sort by project
+  - Sort by context
+  - Sort by due date
+  - Support for boundary marker (lines below the marker won't be sorted)
 
-## Releasing new releases
+- **Editor Monitoring and Syntax Highlighting Mechanism**:
+  1. User Open and edits a todo.txt file
+  2. Changes are detected via Obsidian's `workspace.on('editor-change')` event
+  3. Checks if the modified file is in todo.txt format
+  4. Examines file content for special characters:
+     - "x " (completed task indicator)
+     - "@" (context tag prefix)
+     - "+" (project tag prefix)
+     - "(A)" (priority indicator)
+     - "due:" (due date indicator)
+  5. Applies decorations
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Installation
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+### Manual Installation
+1. Download the zip file from the latest [release](https://github.com/rioskit/obsidian-todo-txt-mode/releases/latest)
+2. Extract the zip and copy the folder to `.obsidian/plugins/`
+3. Restart Obsidian and enable the plugin in settings
 
-## Adding your plugin to the community plugin list
+### Community Plugin Installation
+1. Open Obsidian settings
+2. Go to "Third-party plugins" → "Community plugins" → "Browse"
+3. Search for "Todo.txt Mode" and install
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+## Usage
 
-## How to use
+### Settings
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+1. Open Obsidian settings
+2. Select "Third-party plugins" → "Todo.txt Mode"
+3. Configure:
+   - **Todo.txt File Patterns**: Paths to your todo files (relative to vault root)
+   - **Done File Path**: File path where completed tasks will be moved
+   - **Boundary Marker**: Line marker indicating where sorting should stop
+   - **Highlight Settings**: Enable/disable options for highlighting
+   - **Color Customization**: Install the [Style Settings Plugin](https://github.com/mgmeyers/obsidian-style-settings) to customize colors
 
-## Manually installing the plugin
+### Commands
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+- **Todo.txt: Move completed tasks to done file**: 
+  - Available from the command palette
+  - Moves all completed tasks at once
+- **Todo.txt: Sort by priority**:
+  - Sorts tasks by priority
+- **Todo.txt: Sort by project**:
+  - Sorts tasks by project tag
+- **Todo.txt: Sort by context**:
+  - Sorts tasks by context tag
+- **Todo.txt: Sort by due date**:
+  - Sorts tasks by due date
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+## About todo.txt format
 
-## Funding URL
+Basic todo.txt format:
 
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```
+x 2023-05-08 Completed task +project @context
+Today's task +work @office
+(A) High priority task +project
+A task with due:2023-05-15 date
 ```
 
-If you have multiple URLs, you can also do:
+Visit the [official website](https://github.com/todotxt/todo.txt) for more details.
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+## For Developers
+
+### Release Process
+```bash
+# Update version number
+npm run version
+
+# Create and push tag
+git tag -a 1.0.0 -m "1.0.0" && git push origin 1.0.0
 ```
 
-## API Documentation
+Pushing a tag will automatically create a GitHub release.
 
-See https://github.com/obsidianmd/obsidian-api
+---
+
+# Todo.txt Mode for Obsidian [JA]
+
+Todo.txt Mode は [Obsidian](https://obsidian.md) で [todo.txt](https://github.com/todotxt/todo.txt) ファイル形式をサポートするためのプラグインです。
+
+## 特徴
+
+- **シンタックスハイライト**: todo.txtファイル内の要素を自動的に強調表示
+  - 完了タスク（`x `で始まる行）に取り消し線表示
+  - プロジェクトタグ（`+project`）をハイライト
+  - コンテキストタグ（`@context`）をハイライト
+  - 優先度（`(A)`、`(B)`、`(123)`）をハイライト
+  - 期日（`due:yyyy-mm-dd`）をハイライト
+  - **色のカスタマイズ**: [Style Settings Plugin](https://github.com/mgmeyers/obsidian-style-settings)で色をカスタマイズ可能
+
+- **タスク管理**: 
+  - 完了タスクを専用ファイルに移動するコマンド
+  - 完了タスク（`x `で始まる行）を抽出
+  - 元のファイルから削除
+  - 指定したdoneファイルの先頭に追加（新しいタスクが上）
+
+- **タスクのソート**:
+  - 優先度でソート
+  - プロジェクトでソート
+  - コンテキストでソート
+  - 期日でソート
+  - 境界線マーカーのサポート（この線以下の行はソートされません）
+
+- **エディタ監視とシンタックスハイライトの仕組み**:
+  1. ユーザーがtodo.txt関連ファイルを開き、編集したとき
+  2. Obsidianの`workspace.on('editor-change')`イベントで変更を検知
+  3. 変更されたファイルがtodo.txt形式であるか確認
+  4. ファイル内容を各チェックし、特殊文字の存在を確認
+     - 「x 」(完了タスクの標識)
+     - 「@」(コンテキストタグの先頭)
+     - 「+」(プロジェクトタグの先頭)
+     - 「(A)」(優先度の標識)
+     - 「due:」(期日の標識)
+  5. 装飾を適用
+
+## インストール
+
+### 手動インストール
+1. 最新の[リリース](https://github.com/rioskit/obsidian-todo-txt-mode/releases/latest)からzipファイルをダウンロード
+2. zipを解凍し、フォルダを `.obsidian/plugins/` にコピー
+3. Obsidianを再起動し、設定からプラグインを有効化
+
+### Communityプラグインからのインストール
+1. Obsidianの設定を開く
+2. 「サードパーティプラグイン」→「コミュニティプラグイン」→「閲覧」
+3. "Todo.txt Mode" を検索してインストール
+
+## 使い方
+
+### 設定
+
+1. Obsidianの設定を開く
+2. 「サードパーティプラグイン」→「Todo.txt Mode」を選択
+3. 以下の設定を行う:
+   - **Todo.txt File Patterns**: todo.txtファイルとして認識するパス（Vaultのルートからの相対パス）
+   - **Done File Path**: 完了タスクを移動する先のファイルパス
+   - **Boundary Marker**: ソートの境界線を示すマーカー（この行以下はソートされません）
+   - **Highlight Settings**: ハイライト表示の有効/無効設定
+   - **色のカスタマイズ**: [Style Settings Plugin](https://github.com/mgmeyers/obsidian-style-settings)をインストールすると色をカスタマイズできます
+
+### コマンド
+
+- **Todo.txt: Move completed tasks to done file**: 
+  - コマンドパレットから利用可能
+  - 完了したタスクを一括で移動
+- **Todo.txt: Sort by priority**:
+  - タスクを優先度でソート（Aが最高）
+- **Todo.txt: Sort by project**:
+  - タスクをプロジェクトタグでソート
+- **Todo.txt: Sort by context**:
+  - タスクをコンテキストタグでソート
+- **Todo.txt: Sort by due date**:
+  - タスクを期日でソート
+
+## todo.txt形式について
+
+todo.txt形式の基本:
+
+```
+x 2023-05-08 完了したタスク +プロジェクト @コンテキスト
+今日のタスク +仕事 @オフィス
+(A) 優先度の高いタスク +プロジェクト
+期日 due:2023-05-15 のあるタスク
+```
+
+詳細は[公式サイト](https://github.com/todotxt/todo.txt)をご覧ください。
+
+## 開発者向け情報
+
+### リリース方法
+```bash
+# バージョン番号を更新
+npm run version
+
+# タグ作成とプッシュ
+git tag -a 1.0.0 -m "1.0.0" && git push origin 1.0.0
+```
+
+タグをプッシュすると、GitHub上で自動的にリリースが作成されます。

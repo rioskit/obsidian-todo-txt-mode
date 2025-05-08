@@ -1,8 +1,105 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
+/* @settings
+name: Todo.txt Mode
+id: obsidian-todo-txt-mode
+settings:
+  - id: todo-txt-mode-project-color
+    title: Project Tag Color
+    description: Color for project tags (+project)
+    type: variable-color
+    format: hex
+    default: '#4285F4'
+  
+  - id: todo-txt-mode-context-color
+    title: Context Tag Color
+    description: Color for context tags (@context)
+    type: variable-color
+    format: hex
+    default: '#34A853'
+    
+  - id: todo-txt-mode-priority-color
+    title: Priority Color
+    description: Color for priority markers (A)
+    type: variable-color
+    format: hex
+    default: '#F44336'
+    
+  - id: todo-txt-mode-due-date-color
+    title: Due Date Color
+    description: Color for due dates (due:yyyy-mm-dd)
+    type: variable-color
+    format: hex
+    default: '#607D8B'
+    
+  - id: todo-txt-mode-completed-task-color
+    title: Completed Task Color
+    description: Color for completed tasks (starting with "x ")
+    type: variable-color
+    format: hex
+    default: '#808080'
 */
+
+/* Todo.txt Mode スタイル定義 */
+
+/* 完了タスク（取り消し線） */
+.todo-txt-mode-completed {
+  text-decoration: line-through;
+  opacity: 0.7;
+  color: var(--todo-txt-mode-completed-task-color, #808080);
+}
+
+/* プロジェクト（+project） */
+.todo-txt-mode-project {
+  color: var(--todo-txt-mode-project-color, #4285F4);
+  font-weight: 500;
+}
+
+/* コンテキスト（@context） */
+.todo-txt-mode-context {
+  color: var(--todo-txt-mode-context-color, #34A853);
+  font-weight: 500;
+}
+
+/* 優先度（(A)） */
+.todo-txt-mode-priority {
+  color: var(--todo-txt-mode-priority-color, #F44336);
+  font-weight: 700;
+}
+
+/* 期日（due:yyyy-mm-dd） */
+.todo-txt-mode-due-date {
+  color: var(--todo-txt-mode-due-date-color, #607D8B);
+  font-size: 90%;
+  text-decoration: underline;
+  font-weight: normal;
+}
+
+/* ファイル識別のためのマーカー */
+.todo-txt-mode-file .cm-line {
+  font-family: var(--font-monospace);
+}
+
+/* リスト番号やバレットを非表示にする（オプション） */
+.todo-txt-mode-file .cm-formatting-list {
+  display: none;
+}
+
+/* スタイル設定案内メッセージのスタイル */
+.todo-txt-style-settings-info {
+  margin-bottom: 12px;
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.todo-txt-style-settings-info p {
+  margin: 4px 0;
+}
+
+.todo-txt-style-settings-link {
+  color: var(--text-accent);
+  text-decoration: underline;
+}
+
+.todo-txt-style-settings-link:hover {
+  color: var(--text-accent-hover);
+  text-decoration: underline;
+}
