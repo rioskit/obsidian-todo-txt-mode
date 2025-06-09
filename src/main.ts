@@ -1,9 +1,6 @@
 import {
-	Editor,
 	MarkdownView,
 	Plugin,
-	TFile,
-	debounce,
 } from 'obsidian';
 
 import { TodoTxtSettings, DEFAULT_SETTINGS, TodoTxtSettingTab } from './settings';
@@ -20,10 +17,19 @@ export default class TodoTxtPlugin extends Plugin {
 		this.sorter = new TodoTxtSorter(this.app, this.settings, this.isTodoTxtFile.bind(this));
 		
 		this.addCommand({
-			id: 'todo-txt-done',
+			id: 'done',
 			name: 'Move completed tasks to done file',
-			callback: async () => {
-				await this.sorter.moveCompletedTasks();
+			checkCallback: (checking: boolean) => {
+				const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!activeView || !activeView.file) return false;
+				
+				const isTodoFile = this.isTodoTxtFile(activeView.file.path);
+				if (checking) return isTodoFile;
+				
+				if (isTodoFile) {
+					this.sorter.moveCompletedTasks();
+				}
+				return true;
 			}
 		});
 		this.sorter.registerSortCommands(this);
@@ -34,36 +40,12 @@ export default class TodoTxtPlugin extends Plugin {
 		]);
 		
 
-		const debouncedEditorChangeHandler = debounce((editor: Editor, markdownView: MarkdownView) => {
-			const file = markdownView?.file;
-			if (!file || !this.isTodoTxtFile(file.path)) {
-				return;
-			}
-
-		}, 100, true);
-		
-		this.registerEvent(
-			this.app.workspace.on('editor-change', debouncedEditorChangeHandler)
-		);
-		
-		this.registerEvent(
-			this.app.workspace.on('file-open', (file: TFile | null) => {
-				if (file && this.isTodoTxtFile(file.path)) {
-					this.refreshView();
-				}
-			})
-		);
-		
-		this.app.workspace.onLayoutReady(() => {
-			this.refreshView();
-		});
 	}
 
 	onunload() {
 		if (this.sorter) {
 			this.sorter = null as unknown as TodoTxtSorter;
 		}
-		console.log('Todo.txt Mode plugin unloaded');
 	}
 	
 	async loadSettings() {
@@ -72,26 +54,9 @@ export default class TodoTxtPlugin extends Plugin {
 	
 	async saveSettings() {
 		await this.saveData(this.settings);
-		this.refreshView();
 	}
 	
 	public isTodoTxtFile(path: string): boolean {
 		return this.settings.todoFilePaths.includes(path) || path === this.settings.doneFilePath;
-	}
-	
-	private refreshView() {
-		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeView || !activeView.editor) {
-			return;
-		}
-		
-		const editor = activeView.editor;
-		const content = editor.getValue();
-		const cursor = editor.getCursor();
-		
-		if (content && content.length > 0) {
-			editor.setValue(content);
-			editor.setCursor(cursor);
-		}
 	}
 }
