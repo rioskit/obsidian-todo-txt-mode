@@ -83,6 +83,11 @@ settings:
   display: none;
 }
 
+/* Todo files container styling */
+.todo-txt-mode-files-container {
+  margin-bottom: 16px;
+}
+
 /* スタイル設定案内メッセージのスタイル */
 .todo-txt-style-settings-info {
   margin-bottom: 12px;

@@ -6,6 +6,5 @@
 	"description": "Support for todo.txt file format with syntax highlighting and task management",
 	"author": "Riosk It",
 	"authorUrl": "https://github.com/rioskit",
-	"isDesktopOnly": false,
-	"main": "main.js"
+	"isDesktopOnly": false
 }

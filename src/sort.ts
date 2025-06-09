@@ -58,34 +58,70 @@ export class TodoTxtSorter {
 
     registerSortCommands(plugin: Plugin) {
         plugin.addCommand({
-            id: 'todo-txt-sort-priority',
+            id: 'sort-priority',
             name: 'Sort by priority',
-            callback: async () => {
-                await this.sortTasks(SortType.Priority);
+            checkCallback: (checking: boolean) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+                
+                const isTodoFile = this.isTodoTxtFile(activeView.file.path);
+                if (checking) return isTodoFile;
+                
+                if (isTodoFile) {
+                    this.sortTasks(SortType.Priority);
+                }
+                return true;
             }
         });
         
         plugin.addCommand({
-            id: 'todo-txt-sort-project',
+            id: 'sort-project',
             name: 'Sort by project',
-            callback: async () => {
-                await this.sortTasks(SortType.Project);
+            checkCallback: (checking: boolean) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+                
+                const isTodoFile = this.isTodoTxtFile(activeView.file.path);
+                if (checking) return isTodoFile;
+                
+                if (isTodoFile) {
+                    this.sortTasks(SortType.Project);
+                }
+                return true;
             }
         });
         
         plugin.addCommand({
-            id: 'todo-txt-sort-context',
+            id: 'sort-context',
             name: 'Sort by context',
-            callback: async () => {
-                await this.sortTasks(SortType.Context);
+            checkCallback: (checking: boolean) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+                
+                const isTodoFile = this.isTodoTxtFile(activeView.file.path);
+                if (checking) return isTodoFile;
+                
+                if (isTodoFile) {
+                    this.sortTasks(SortType.Context);
+                }
+                return true;
             }
         });
         
         plugin.addCommand({
-            id: 'todo-txt-sort-due-date',
+            id: 'sort-due-date',
             name: 'Sort by due date',
-            callback: async () => {
-                await this.sortTasks(SortType.DueDate);
+            checkCallback: (checking: boolean) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+                
+                const isTodoFile = this.isTodoTxtFile(activeView.file.path);
+                if (checking) return isTodoFile;
+                
+                if (isTodoFile) {
+                    this.sortTasks(SortType.DueDate);
+                }
+                return true;
             }
         });
     }
@@ -178,7 +214,9 @@ export class TodoTxtSorter {
         const sortedLines = linesAfterBoundary.length > 0 
             ? [...sortedTasks, '', ...linesAfterBoundary] 
             : sortedTasks;
-        await this.app.vault.modify(file, sortedLines.join('\n'));
+        await this.app.vault.process(file, (data) => {
+            return sortedLines.join('\n');
+        });
         
         new Notice(`Tasks sorted by ${sortType}`);
     }
@@ -218,7 +256,9 @@ export class TodoTxtSorter {
             
             if (completedLines.length > 0) {
                 completedTasks = [...completedTasks, ...completedLines];
-                await this.app.vault.modify(file, remainingLines.join('\n'));
+                await this.app.vault.process(file, (data) => {
+                    return remainingLines.join('\n');
+                });
             }
         }
         
@@ -241,7 +281,9 @@ export class TodoTxtSorter {
                 const existingContent = await this.app.vault.cachedRead(doneFile);
                 const newContent = completedTasks.join('\n') + 
                     (existingContent ? '\n' + existingContent : '');
-                await this.app.vault.modify(doneFile, newContent);
+                await this.app.vault.process(doneFile, (data) => {
+                    return newContent;
+                });
             }
             
             new Notice(`Moved ${completedTasks.length} completed task(s) to ${doneFilePath}`);

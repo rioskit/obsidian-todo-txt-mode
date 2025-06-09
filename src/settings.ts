@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, normalizePath } from 'obsidian';
 import TodoTxtPlugin from './main';
 
 export enum SortType {
@@ -109,7 +109,9 @@ export class TodoTxtSettingTab extends PluginSettingTab {
                 .setPlaceholder(placeholder)
                 .setValue(this.plugin.settings[key] as string)
                 .onChange(async (value) => {
-                    (this.plugin.settings[key] as string) = value;
+                    // Normalize path for file path settings
+                    const normalizedValue = (key === 'doneFilePath') ? normalizePath(value) : value;
+                    (this.plugin.settings[key] as string) = normalizedValue;
                     await this.plugin.saveSettings();
                 })
             );
@@ -119,10 +121,9 @@ export class TodoTxtSettingTab extends PluginSettingTab {
         const {containerEl}: {containerEl: HTMLElement} = this;
         containerEl.empty();
         
-        containerEl.createEl('h2', {text: 'Todo.txt Mode Settings'});
         
         const todoFilesSetting = new Setting(containerEl)
-            .setName('Todo Files')
+            .setName('Todo files')
             .setDesc('Paths to your todo files (relative to vault root)');
         
         todoFilesSetting.addButton(button => button
@@ -143,7 +144,7 @@ export class TodoTxtSettingTab extends PluginSettingTab {
                     .setPlaceholder('e.g. /path/to/todo.md')
                     .setValue(path)
                     .onChange(async (value: string) => {
-                        this.plugin.settings.todoFilePaths[index] = value;
+                        this.plugin.settings.todoFilePaths[index] = normalizePath(value);
                         await this.plugin.saveSettings();
                     })
                 )
@@ -161,13 +162,13 @@ export class TodoTxtSettingTab extends PluginSettingTab {
         
         this.createTextSetting(
             containerEl,
-            'Done File Path',
+            'Done file path',
             'File to store completed tasks (relative to vault root)',
             'e.g. /done.md',
             'doneFilePath'
         );
         
-        containerEl.createEl('h3', {text: 'Highlighting'});
+        new Setting(containerEl).setHeading().setName('Highlighting');
 
         const styleSettingsInfo = containerEl.createEl('div', {
             cls: 'todo-txt-style-settings-info',
@@ -186,7 +187,7 @@ export class TodoTxtSettingTab extends PluginSettingTab {
 
         this.createHighlightSetting(
             containerEl,
-            'Highlight Completed Tasks',
+            'Highlight completed tasks',
             'Apply strikethrough to completed tasks (starting with "x ")',
             'highlightCompletedTask',
             'completedTaskColor'
@@ -194,7 +195,7 @@ export class TodoTxtSettingTab extends PluginSettingTab {
 
         this.createHighlightSetting(
             containerEl,
-            'Highlight Projects',
+            'Highlight projects',
             'Apply color to projects ("+project")',
             'highlightProject',
             'projectColor'
@@ -202,7 +203,7 @@ export class TodoTxtSettingTab extends PluginSettingTab {
 
         this.createHighlightSetting(
             containerEl,
-            'Highlight Contexts',
+            'Highlight contexts',
             'Apply color to contexts ("@context")',
             'highlightContext',
             'contextColor'
@@ -210,7 +211,7 @@ export class TodoTxtSettingTab extends PluginSettingTab {
 
         this.createHighlightSetting(
             containerEl,
-            'Highlight Priorities',
+            'Highlight priorities',
             'Apply color to priorities ("(A)", "(1)")',
             'highlightPriority',
             'priorityColor'
@@ -218,17 +219,17 @@ export class TodoTxtSettingTab extends PluginSettingTab {
 
         this.createHighlightSetting(
             containerEl,
-            'Highlight Due Dates',
+            'Highlight due dates',
             'Apply color to due dates ("due:yyyy-mm-dd")',
             'highlightDueDate',
             'dueDateColor'
         );
         
-        containerEl.createEl('h3', {text: 'Sort Settings'});
+        new Setting(containerEl).setHeading().setName('Sort settings');
         
         this.createTextSetting(
             containerEl,
-            'Boundary Marker',
+            'Boundary marker',
             'Lines after this marker will not be sorted. Default: "--"',
             '--',
             'boundaryMarker'
