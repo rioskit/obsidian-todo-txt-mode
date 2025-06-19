@@ -127,7 +127,7 @@ export class TodoTxtSettingTab extends PluginSettingTab {
             .setDesc('Paths to your todo files (relative to vault root)');
         
         todoFilesSetting.addButton(button => button
-            .setButtonText('Add Todo File')
+            .setButtonText('Add todo file')
             .setCta()
             .onClick(async () => {
                 this.plugin.settings.todoFilePaths.push('');
