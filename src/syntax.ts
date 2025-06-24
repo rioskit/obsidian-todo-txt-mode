@@ -4,8 +4,8 @@ import { App, TFile } from 'obsidian';
 import { TodoTxtSettings } from './settings';
 
 export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) => boolean, getSettings: () => TodoTxtSettings) {
-    const projectRegex = /\+[\w\p{L}\p{N}]+/gu;
-    const contextRegex = /@[\w\p{L}\p{N}]+/gu;
+    const projectRegex = /\+[^\s]+/g;
+    const contextRegex = /@[^\s]+/g;
     const priorityRegex = /^(\s*(?:x\s+)?\s*)\(([A-Z0-9][A-Z0-9a-z0-9]*)\)/;
     // const dueDateRegex = /due:(\d{4}-\d{2}-\d{2})/g;
     const dueDateRegex = /due:[^\s]+/g;
