@@ -2,12 +2,8 @@ import { Decoration, DecorationSet, EditorView as CMEditorView, ViewPlugin, View
 import { RangeSetBuilder } from '@codemirror/state';
 import { App, TFile } from 'obsidian';
 import { TodoTxtSettings } from './settings';
+import { tokenizeLine, Token } from './parser';
 
-// 正規表現をテスト用にexport
-export const projectRegex = /\+[^\s]+/g;
-export const contextRegex = /@[^\s]+/g;
-export const priorityRegex = /^(\s*(?:x\s+)?\s*)\(([A-Z0-9][A-Z0-9a-z0-9]*)\)/;
-export const dueDateRegex = /due:[^\s]+/g;
 
 export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) => boolean, getSettings: () => TodoTxtSettings) {
     // 正規表現はモジュールレベルで定義されたものを使用
@@ -53,9 +49,13 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
             for (let i = viewport.from; i <= viewport.to;) {
                 const line = doc.lineAt(i);
                 const lineText = line.text;
-                const trimmedText = lineText.trim();
                 
-                if (settings.highlightCompletedTask && trimmedText.startsWith('x ')) {
+                // 新しいパーサーを使用してトークン化
+                const parsedLine = tokenizeLine(lineText);
+                
+                // 完了タスクの行全体ハイライト
+                const hasCompletion = parsedLine.tokens.some(token => token.type === 'completion');
+                if (settings.highlightCompletedTask && hasCompletion) {
                     const deco = Decoration.line({
                         attributes: { class: "todo-txt-mode-completed" }
                     });
@@ -66,75 +66,58 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     });
                 }
                 
-                if (settings.highlightProject) {
-                    projectRegex.lastIndex = 0;
-                    let match: RegExpExecArray | null;
+                // トークンごとのハイライト処理
+                for (const token of parsedLine.tokens) {
+                    let className: string | null = null;
+                    let shouldHighlight = false;
                     
-                    while ((match = projectRegex.exec(lineText)) !== null) {
-                        const start = line.from + match.index;
-                        const end = start + match[0].length;
-                        const deco = Decoration.mark({
-                            attributes: { class: "todo-txt-mode-project" }
-                        });
-                        decorations.push({
-                            from: start,
-                            to: end,
-                            decoration: deco
-                        });
+                    switch (token.type) {
+                        case 'project':
+                            if (settings.highlightProject) {
+                                className = "todo-txt-mode-project";
+                                shouldHighlight = true;
+                            }
+                            break;
+                        case 'context':
+                            if (settings.highlightContext) {
+                                className = "todo-txt-mode-context";
+                                shouldHighlight = true;
+                            }
+                            break;
+                        case 'priority':
+                            if (settings.highlightPriority) {
+                                className = "todo-txt-mode-priority";
+                                shouldHighlight = true;
+                            }
+                            break;
+                        case 'key_value':
+                            // due: で始まるkey_valueをdue dateとして扱う
+                            if (settings.highlightDueDate && token.value.startsWith('due:')) {
+                                className = "todo-txt-mode-due-date";
+                                shouldHighlight = true;
+                            }
+                            break;
+                        case 'completion_date':
+                            if (settings.highlightCompletionDate) {
+                                className = "todo-txt-mode-completion-date";
+                                shouldHighlight = true;
+                            }
+                            break;
+                        case 'creation_date':
+                            if (settings.highlightCreationDate) {
+                                className = "todo-txt-mode-creation-date";
+                                shouldHighlight = true;
+                            }
+                            break;
                     }
-                }
-                
-                if (settings.highlightContext) {
-                    contextRegex.lastIndex = 0;
-                    let match: RegExpExecArray | null;
                     
-                    while ((match = contextRegex.exec(lineText)) !== null) {
-                        const start = line.from + match.index;
-                        const end = start + match[0].length;
+                    if (shouldHighlight && className) {
                         const deco = Decoration.mark({
-                            attributes: { class: "todo-txt-mode-context" }
+                            attributes: { class: className }
                         });
                         decorations.push({
-                            from: start,
-                            to: end,
-                            decoration: deco
-                        });
-                    }
-                }
-                
-                if (settings.highlightPriority) {
-                    const priorityMatch = priorityRegex.exec(lineText);
-                    if (priorityMatch) {
-                        const prefixLength = priorityMatch[1].length;
-                        const priorityText = priorityMatch[2];
-                        const start = line.from + prefixLength;
-                        const end = start + priorityText.length + 2;
-                        
-                        const deco = Decoration.mark({
-                            attributes: { class: "todo-txt-mode-priority" }
-                        });
-                        
-                        decorations.push({
-                            from: start,
-                            to: end,
-                            decoration: deco
-                        });
-                    }
-                }
-                
-                if (settings.highlightDueDate) {
-                    dueDateRegex.lastIndex = 0;
-                    let match: RegExpExecArray | null;
-                    
-                    while ((match = dueDateRegex.exec(lineText)) !== null) {
-                        const start = line.from + match.index;
-                        const end = start + match[0].length;
-                        const deco = Decoration.mark({
-                            attributes: { class: "todo-txt-mode-due-date" }
-                        });
-                        decorations.push({
-                            from: start,
-                            to: end,
+                            from: line.from + token.start,
+                            to: line.from + token.end,
                             decoration: deco
                         });
                     }

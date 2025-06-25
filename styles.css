@@ -36,6 +36,20 @@ settings:
     type: variable-color
     format: hex
     default: '#808080'
+    
+  - id: todo-txt-mode-completion-date-color
+    title: Completion Date Color
+    description: Color for completion dates in completed tasks (x 2011-03-02)
+    type: variable-color
+    format: hex
+    default: '#FF9800'
+    
+  - id: todo-txt-mode-creation-date-color
+    title: Creation Date Color
+    description: Color for creation dates (2011-03-01 Task or x date1 2011-03-01 Task)
+    type: variable-color
+    format: hex
+    default: '#9C27B0'
 */
 
 /* Todo.txt Mode スタイル定義 */
@@ -71,6 +85,26 @@ settings:
   font-size: 90%;
   text-decoration: underline;
   font-weight: normal;
+}
+
+/* 完了日（x 2011-03-02） */
+.todo-txt-mode-completion-date {
+  color: var(--todo-txt-mode-completion-date-color, #FF9800);
+  font-size: 90%;
+  font-weight: 600;
+  background-color: rgba(255, 152, 0, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* 作成日（2011-03-01 Task or x date1 2011-03-01 Task） */
+.todo-txt-mode-creation-date {
+  color: var(--todo-txt-mode-creation-date-color, #9C27B0);
+  font-size: 90%;
+  font-weight: 600;
+  background-color: rgba(156, 39, 176, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
 /* ファイル識別のためのマーカー */

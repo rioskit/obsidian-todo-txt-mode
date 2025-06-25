@@ -28,6 +28,12 @@ export interface TodoTxtSettings {
     
     highlightDueDate: boolean;
     dueDateColor: string;
+
+    highlightCompletionDate: boolean;
+    completionDateColor: string;
+
+    highlightCreationDate: boolean;
+    creationDateColor: string;
 }
 
 export const DEFAULT_SETTINGS: TodoTxtSettings = {
@@ -49,7 +55,13 @@ export const DEFAULT_SETTINGS: TodoTxtSettings = {
     priorityColor: "#E91E63",
     
     highlightDueDate: true,
-    dueDateColor: "#607D8B"
+    dueDateColor: "#607D8B",
+
+    highlightCompletionDate: true,
+    completionDateColor: "#FF9800",
+
+    highlightCreationDate: true,
+    creationDateColor: "#9C27B0"
 }
 
 export class TodoTxtSettingTab extends PluginSettingTab {
@@ -223,6 +235,22 @@ export class TodoTxtSettingTab extends PluginSettingTab {
             'Apply color to due dates ("due:yyyy-mm-dd")',
             'highlightDueDate',
             'dueDateColor'
+        );
+
+        this.createHighlightSetting(
+            containerEl,
+            'Highlight completion dates',
+            'Apply color to completion dates in completed tasks ("x 2011-03-02")',
+            'highlightCompletionDate',
+            'completionDateColor'
+        );
+
+        this.createHighlightSetting(
+            containerEl,
+            'Highlight creation dates',
+            'Apply color to creation dates ("2011-03-01 Task" or "x date1 2011-03-01")',
+            'highlightCreationDate',
+            'creationDateColor'
         );
         
         new Setting(containerEl).setHeading().setName('Sort settings');
