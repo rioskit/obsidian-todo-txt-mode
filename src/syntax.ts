@@ -3,12 +3,14 @@ import { RangeSetBuilder } from '@codemirror/state';
 import { App, TFile } from 'obsidian';
 import { TodoTxtSettings } from './settings';
 
+// 正規表現をテスト用にexport
+export const projectRegex = /\+[^\s]+/g;
+export const contextRegex = /@[^\s]+/g;
+export const priorityRegex = /^(\s*(?:x\s+)?\s*)\(([A-Z0-9][A-Z0-9a-z0-9]*)\)/;
+export const dueDateRegex = /due:[^\s]+/g;
+
 export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) => boolean, getSettings: () => TodoTxtSettings) {
-    const projectRegex = /\+[^\s]+/g;
-    const contextRegex = /@[^\s]+/g;
-    const priorityRegex = /^(\s*(?:x\s+)?\s*)\(([A-Z0-9][A-Z0-9a-z0-9]*)\)/;
-    // const dueDateRegex = /due:(\d{4}-\d{2}-\d{2})/g;
-    const dueDateRegex = /due:[^\s]+/g;
+    // 正規表現はモジュールレベルで定義されたものを使用
 
     return ViewPlugin.fromClass(class implements PluginValue {
         decorations: DecorationSet;

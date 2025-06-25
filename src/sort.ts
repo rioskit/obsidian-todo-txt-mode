@@ -1,5 +1,6 @@
 import { App, MarkdownView, Notice, Plugin, TFile, normalizePath } from 'obsidian';
 import { SortType, TodoTxtSettings } from './settings';
+import { parsePriorityValue, parseProjectTag, parseContextTag, parseDueDate } from './parser';
 
 export class TodoTxtSorter {
     constructor(
@@ -9,51 +10,19 @@ export class TodoTxtSorter {
     ) {}
 
     getPriorityValue(line: string): number {
-        if (line.trim().startsWith('x ')) {
-            return Number.MAX_SAFE_INTEGER;
-        }
-        
-        const priorityMatch = line.match(/^\s*\(([A-Z0-9][A-Z0-9a-z0-9]*)\)/);
-        if (!priorityMatch) {
-            return Number.MAX_SAFE_INTEGER - 1; // 優先度なしは完了タスクの上
-        }
-        
-        const priority = priorityMatch[1];
-        // 数字だけの場合はその値を返す
-        if (/^\d+$/.test(priority)) {
-            return parseInt(priority, 10);
-        }
-        
-        // 先頭が数字の場合は数値として解釈
-        if (/^\d/.test(priority)) {
-            const numericPart = priority.match(/^\d+/);
-            if (numericPart) {
-                return parseInt(numericPart[0], 10);
-            }
-        }
-        
-        // 先頭がアルファベットの場合は順序に変換（A=0, B=1, ...）
-        // 複数のアルファベットの場合は先頭文字のみを考慮
-        return priority.charCodeAt(0) - 'A'.charCodeAt(0);
+        return parsePriorityValue(line);
     }
     
     getProjectTag(line: string): string {
-        const projectMatch = line.match(/\+([^\s]+)/);
-        return projectMatch ? projectMatch[1].toLowerCase() : 'zzzz'; // プロジェクトなしは最後
+        return parseProjectTag(line);
     }
     
     getContextTag(line: string): string {
-        const contextMatch = line.match(/@([^\s]+)/);
-        return contextMatch ? contextMatch[1].toLowerCase() : 'zzzz'; // コンテキストなしは最後
+        return parseContextTag(line);
     }
     
     getDueDate(line: string, defaultToFuture: boolean = true): string {
-        const dueDateMatch = line.match(/due:(\d{4}-\d{2}-\d{2})/);
-        // 期日なしの場合、ソートの種類によって異なる値を返す
-        if (!dueDateMatch) {
-            return defaultToFuture ? '9999-99-99' : '0000-00-00'; // ソート種別によって最初か最後に
-        }
-        return dueDateMatch[1];
+        return parseDueDate(line, defaultToFuture);
     }
 
     registerSortCommands(plugin: Plugin) {
