@@ -1,0 +1,165 @@
+Simple task without any parameters
+(A) Priority A task
+(B) Priority B task
+(C) Priority C task
+(Z) Priority Z task
+(123) Numeric priority task
+(1) Single digit priority task
+(999) Three digit priority task
+2025-01-15 Task with creation date only
+(A) 2025-01-15 Priority A with creation date
+(B) 2025-01-15 Priority B with creation date
+(123) 2025-01-15 Numeric priority with creation date
+Task with +project
+Task with +MultiWordProject
+Task with multiple +project1 +project2 +project3
+Task with @context
+Task with @home @phone multiple contexts
+Task with @MultiWordContext
+Task with key:value pair due:2025-12-31
+Task with multiple pairs due:2025-12-31 rec:1w
+2025-01-15 Creation date with +project
+2025-01-15 Creation date with @context
+2025-01-15 Creation date with due:2025-12-31
+(A) Task with priority and +project
+(A) Task with priority and @context
+(A) Task with priority and due:2025-12-31
+(A) 2025-01-15 Priority, creation date, and +project
+(A) 2025-01-15 Priority, creation date, and @context
+(A) 2025-01-15 Priority, creation date, and due:2025-12-31
+Task with +project @context
+Task with +project due:2025-12-31
+Task with @context due:2025-12-31
+Task with +project @context due:2025-12-31
+2025-01-15 Task with date +project @context
+2025-01-15 Task with date +project due:2025-12-31
+2025-01-15 Task with date @context due:2025-12-31
+2025-01-15 Task with date +project @context due:2025-12-31
+(A) Task with priority +project @context
+(A) Task with priority +project due:2025-12-31
+(A) Task with priority @context due:2025-12-31
+(A) Task with priority +project @context due:2025-12-31
+(A) 2025-01-15 All parameters +project @context due:2025-12-31
+(B) 2025-01-14 Different priority and date +project2 @home due:2025-11-30
+(123) 2025-01-13 Numeric priority all params +projectX @work due:2025-10-31
+x Simple completed task
+x 2025-01-16 Completed task with completion date
+x 2025-01-16 2025-01-15 Completed task with completion and creation dates
+x 2025-01-16 Completed task with +project
+x 2025-01-16 Completed task with @context
+x 2025-01-16 Completed task with due:2025-12-31
+x 2025-01-16 2025-01-15 Completed with dates and +project
+x 2025-01-16 2025-01-15 Completed with dates and @context
+x 2025-01-16 2025-01-15 Completed with dates and due:2025-12-31
+x 2025-01-16 Completed with +project @context
+x 2025-01-16 Completed with +project due:2025-12-31
+x 2025-01-16 Completed with @context due:2025-12-31
+x 2025-01-16 Completed with +project @context due:2025-12-31
+x 2025-01-16 2025-01-15 Completed all params +project @context due:2025-12-31
++project Task starting with project tag
+@context Task starting with context tag
+due:2025-12-31 Task starting with key value
+Task with special chars in +project-name @context_name
+Task with numbers in +project123 @context456
+Task with dots in +project.name @context.place
+Complex task with +project1 +project2 @home @work due:2025-12-31 rec:1m pri:H
+(1a) Mixed alphanumeric priority task
+(A1) Letter first mixed priority task
+     Task with leading spaces
+Task with trailing spaces     
+     (A) 2025-01-15 Task with leading spaces and params     
+Task with time due:2025-12-31T14:30:00
+Multiple same contexts @home @home @home
+Multiple same projects +projectA +projectA +projectA
+rec:+1w Recurrence with plus sign
+Custom key custom:value in task
+Multiple custom keys foo:bar baz:qux in task
+Task with URL https://example.com/path
+Task with email user@example.com might have @ but not context
+(0) Zero priority task
+(ABC) Multi-letter priority task
+(999999) Very large numeric priority
+Task with unicode émojis 🎯 and special chars
+@context+project Wrong order but both present
+t:2025-01-15 Short key for date
+p:1 Short key for priority
+x  2025-01-16 Completed with double space
+x 2025-01-16  2025-01-15 Double space between dates
+(A)  2025-01-15 Double space after priority
+Task with +CamelCaseProject @PascalCaseContext
+Task with +snake_case_project @kebab-case-context
++123project Project starting with numbers
+@123context Context starting with numbers
+Task with key:value:with:colons might break parser
+Escaped special chars \+not-project \@not-context
+Task with +über @café unicode in tags
++project@email.com Might confuse parser
+Task with (parentheses) in description not priority
+Task with [brackets] and {braces} in description
+due:2025-12-31 @context Order matters for key:value
+@context due:2025-12-31 Different order same elements
+Long task description that contains many words and might wrap in some views but should still parse correctly with +project @context due:2025-12-31
+Task with emoji project +🚀rocket +📱mobile +🎯target
+Task with emoji context @🏠home @💼work @🛒shopping
+Task with emoji in description 🎉 Complete the feature 🚀 +dev @office
+(A) 2025-01-15 Priority task with emojis 🔥 +🚀deploy @🏠home due:2025-12-31
+x 2025-01-16 Completed emoji task 🎉 +🚀project @🏠home
+Mixed emoji and text +emoji🎯project @context🔥fire
+Multiple emojis in one tag +🚀🎯🔥 @🏠💼🛒
+Emoji with skin tone +👋🏻project @👨‍💻dev
+Complex emoji +👨‍👩‍👧‍👦family @🏳️‍🌈pride
+Zero-width joiner emoji +🧑‍🚀astronaut @👨‍⚕️doctor
+Task with Japanese text タスク +プロジェクト @コンテキスト
+Task with Chinese 任务 +项目 @上下文
+Task with Korean 작업 +프로젝트 @컨텍스트
+Task with Arabic مهمة +مشروع @سياق
+Task with Hebrew משימה +פרויקט @הקשר
+Task with Cyrillic задача +проект @контекст
+Task with mixed scripts +日本語project @中文context
+RTL text עברית task with +project @context due:2025-12-31
+Combining marks task̃ +projec̈t @conte͂xt
+Task with !@#$%^&*() special chars in description
+Task with +project!name @context#tag
+Task with +pro-ject_name @con.text_name
+Task with +project/subproject @context\subcontext
+Task with +project|pipe @context&and
+Task with quotes "quoted +project" and 'single @quotes'
+Task with backticks `code +example` @context
+Task with brackets [not a link] +project
+Task with angle brackets <not html> @context
+Task with curly braces {not json} +project
+Task with backslash\\ in middle
+Task with zero​width​space between words
+Task with soft­hyphen in word
+(A) 2025-01-15 Task +project1 +project2 +project3 @context1 @context2 @context3 due:2025-12-31 rec:1w pri:H custom:value foo:bar
+x (B) 2025-01-16 2025-01-15 Complete +🚀 +📱 @🏠 @💼 due:2025-12-31 done:2025-01-16
+(123456789) Very long numeric priority +project
+(A1B2C3) Complex alphanumeric priority @context
+Multiple dates 2025-01-15 2025-01-16 2025-01-17 in task
+Task with very long project name +ThisIsAVeryLongProjectNameThatMightCauseIssuesWithSomeSystemsThatHaveLengthLimitsOnIdentifiers
+Task with many projects +p1 +p2 +p3 +p4 +p5 +p6 +p7 +p8 +p9 +p10 +p11 +p12 +p13 +p14 +p15 +p16 +p17 +p18 +p19 +p20
+Task with many contexts @c1 @c2 @c3 @c4 @c5 @c6 @c7 @c8 @c9 @c10 @c11 @c12 @c13 @c14 @c15 @c16 @c17 @c18 @c19 @c20
+Task with many key:value pairs a:1 b:2 c:3 d:4 e:5 f:6 g:7 h:8 i:9 j:10 k:11 l:12 m:13 n:14 o:15
+Extremely long task description that goes on and on and on with many words to test how the parser handles very long lines that might exceed buffer limits in some implementations and includes +project @context due:2025-12-31 and continues even further with more text
++project Task with only project no description after
+@context Task with only context no description after
+due:2025-12-31 Task with only key:value no description after
+(A) Priority only no task description
+x Completed marker only no description
+x 2025-01-16 Completed with date only no description
+2025-01-15 Date only no description
+Task with HTML tags <b>bold</b> text
+Task with & HTML entity &amp; test
+Task with < and > comparison operators
+Task with && and || logical operators
+Task with -> arrow notation
+Task with => fat arrow
+Task with ... ellipsis
+Task with file.extension.txt mentions
+Task with https://example.com/+project/@context/page
+     Heavily indented task with many spaces
+		Task with tab indentation
+	  	Mixed spaces and tabs indentation
+Task with trailing newline
+(A) No space after priority works as valid format
+Task without trailing newline

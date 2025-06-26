@@ -27,6 +27,15 @@ npx tsc -noEmit -skipLibCheck
 # プロダクションビルド
 npm run build
 
+# テスト実行
+npm test
+
+# テスト監視モード
+npm run test:watch
+
+# テストカバレッジ
+npm run test:coverage
+
 # バージョン番号の更新（manifest.jsonとversions.jsonを更新）
 npm run version
 ```
@@ -60,15 +69,27 @@ npm run version
 
 ## ファイル構造
 
-- `main.ts`: プラグインのメインコード、ライフサイクル管理
-- `syntax.ts`: 構文ハイライト関連の機能
-- `settings.ts`: 設定関連のインターフェースと設定タブUI
-- `sort.ts`: タスクソート機能とタスク移動機能
-- `styles.css`: ハイライト表示用のCSS
-- `manifest.json`: プラグイン情報
-- `package.json`: 依存関係と開発スクリプト
-- `esbuild.config.mjs`: ビルド設定
-- `versions.json`: プラグインバージョンと最小Obsidianバージョンの情報
+```
+src/
+├── main.ts              # プラグインのメインコード、ライフサイクル管理
+├── syntax.ts            # 構文ハイライト関連の機能（CodeMirror ViewPlugin）
+├── settings.ts          # 設定関連のインターフェースと設定タブUI
+├── sort.ts              # タスクソート機能とタスク移動機能
+├── parser.ts            # Todo.txt形式のパーサー機能
+└── __tests__/           # テストファイル
+    ├── sort.test.ts     # ソート機能のテスト
+    └── syntax.test.ts   # 構文ハイライトのテスト
+
+# 設定ファイル
+├── manifest.json        # プラグイン情報
+├── package.json         # 依存関係と開発スクリプト
+├── esbuild.config.mjs   # ビルド設定
+├── jest.config.js       # Jestテスト設定
+├── tsconfig.json        # TypeScript設定
+├── tsconfig.test.json   # テスト用TypeScript設定
+├── versions.json        # プラグインバージョンと最小Obsidianバージョンの情報
+└── styles.css           # ハイライト表示用のCSS
+```
 
 ## 重要な実装の詳細
 
@@ -95,9 +116,20 @@ Obsidianの開発者モードでプラグインをテストするには：
 5. ファイルにTodo.txt形式のタスクを記述（例：`x 2023-05-08 完了したタスク +プロジェクト @コンテキスト`）
 6. 優先度（例：`(A) 優先度の高いタスク`）や期日（例：`due:2023-05-15`）を試してみる
 
-## 開発上の規約
+## 重要な開発注意事項
 
-## コード品質
+### テスト実行について
+- 新機能やバグ修正の際は必ずテストを実行: `npm test`
+- テストカバレッジを確認: `npm run test:coverage`
+- テストファイルは `src/__tests__/` に配置
+
+### ビルドプロセス
+- TypeScriptの型チェックを必ず実行: `npx tsc -noEmit -skipLibCheck`
+- プロダクションビルド前に開発ビルドで動作確認: `npm run dev`
+
+## Obsidianプラグイン開発のベストプラクティス
+
+### コード品質
 
 ### 命名規則
 - 一貫した命名スタイルを使用する（関数には camelCase、クラスには PascalCase）
@@ -216,14 +248,12 @@ Obsidianの開発者モードでプラグインをテストするには：
 ### UI 操作
 - Obsidian の組み込み UI コンポーネントを使用する（Notice、Modal）
 
-## 最終提出前チェックリスト
-1. コード品質に一貫性がある
-2. セキュリティの懸念事項に対処している
-3. パフォーマンスの問題を最小限に抑えている
-4. 必須ファイルがすべて含まれている
-5. ドキュメントが完全である
-6. 互換性が確保されている
-7. ライセンスの問題が解決されている
-8. Obsidian API が適切に使用されている
-
-このチェックリストは、Obsidian プラグイン開発者が一般的な問題を回避し、Pull Request の承認プロセスを円滑に進めるのに役立ちます。
+## 開発前チェックリスト
+1. **テスト実行**: `npm test` でテストがパスすることを確認
+2. **型チェック**: `npx tsc -noEmit -skipLibCheck` でTypeScriptエラーがないことを確認
+3. **ビルド確認**: `npm run build` でビルドが成功することを確認
+4. **コード品質**: 一貫した命名規則とコーディングスタイルを維持
+5. **セキュリティ**: DOM操作やユーザー入力の適切な処理
+6. **パフォーマンス**: メモリリークやブロッキング処理の回避
+7. **互換性**: クロスプラットフォーム・モバイル対応
+8. **Obsidian API**: 適切なAPI使用とリソース管理
