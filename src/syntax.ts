@@ -2,12 +2,10 @@ import { Decoration, DecorationSet, EditorView as CMEditorView, ViewPlugin, View
 import { RangeSetBuilder } from '@codemirror/state';
 import { App, TFile } from 'obsidian';
 import { TodoTxtSettings } from './settings';
-import { tokenizeLine, Token } from './parser';
+import { parseTodo, ElementPosition } from './utils/todotxt-core';
 
 
 export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) => boolean, getSettings: () => TodoTxtSettings) {
-    // 正規表現はモジュールレベルで定義されたものを使用
-
     return ViewPlugin.fromClass(class implements PluginValue {
         decorations: DecorationSet;
         view: CMEditorView;
@@ -50,12 +48,11 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                 const line = doc.lineAt(i);
                 const lineText = line.text;
                 
-                // 新しいパーサーを使用してトークン化
-                const parsedLine = tokenizeLine(lineText);
+                const todo = parseTodo(lineText);
+                const positions = todo.getElementPositions();
                 
                 // 完了タスクの行全体ハイライト
-                const hasCompletion = parsedLine.tokens.some(token => token.type === 'completion');
-                if (settings.highlightCompletedTask && hasCompletion) {
+                if (settings.highlightCompletedTask && todo.isDone()) {
                     const deco = Decoration.line({
                         attributes: { class: "todo-txt-mode-completed" }
                     });
@@ -66,61 +63,86 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     });
                 }
                 
-                // トークンごとのハイライト処理
-                for (const token of parsedLine.tokens) {
-                    let className: string | null = null;
-                    let shouldHighlight = false;
-                    
-                    switch (token.type) {
-                        case 'project':
-                            if (settings.highlightProject) {
-                                className = "todo-txt-mode-project";
-                                shouldHighlight = true;
-                            }
-                            break;
-                        case 'context':
-                            if (settings.highlightContext) {
-                                className = "todo-txt-mode-context";
-                                shouldHighlight = true;
-                            }
-                            break;
-                        case 'priority':
-                            if (settings.highlightPriority) {
-                                className = "todo-txt-mode-priority";
-                                shouldHighlight = true;
-                            }
-                            break;
-                        case 'key_value':
-                            // due: で始まるkey_valueをdue dateとして扱う
-                            if (settings.highlightDueDate && token.value.startsWith('due:')) {
-                                className = "todo-txt-mode-due-date";
-                                shouldHighlight = true;
-                            }
-                            break;
-                        case 'completion_date':
-                            if (settings.highlightCompletionDate) {
-                                className = "todo-txt-mode-completion-date";
-                                shouldHighlight = true;
-                            }
-                            break;
-                        case 'creation_date':
-                            if (settings.highlightCreationDate) {
-                                className = "todo-txt-mode-creation-date";
-                                shouldHighlight = true;
-                            }
-                            break;
-                    }
-                    
-                    if (shouldHighlight && className) {
+                // 各要素のハイライト処理
+                
+                // プロジェクトタグのハイライト
+                if (settings.highlightProject) {
+                    for (const project of positions.projects) {
                         const deco = Decoration.mark({
-                            attributes: { class: className }
+                            attributes: { class: "todo-txt-mode-project" }
                         });
                         decorations.push({
-                            from: line.from + token.start,
-                            to: line.from + token.end,
+                            from: line.from + project.start,
+                            to: line.from + project.end,
                             decoration: deco
                         });
                     }
+                }
+                
+                // コンテキストタグのハイライト
+                if (settings.highlightContext) {
+                    for (const context of positions.contexts) {
+                        const deco = Decoration.mark({
+                            attributes: { class: "todo-txt-mode-context" }
+                        });
+                        decorations.push({
+                            from: line.from + context.start,
+                            to: line.from + context.end,
+                            decoration: deco
+                        });
+                    }
+                }
+                
+                // 優先度のハイライト
+                if (settings.highlightPriority && positions.priority) {
+                    const deco = Decoration.mark({
+                        attributes: { class: "todo-txt-mode-priority" }
+                    });
+                    decorations.push({
+                        from: line.from + positions.priority.start,
+                        to: line.from + positions.priority.end,
+                        decoration: deco
+                    });
+                }
+                
+                // 期日のハイライト
+                if (settings.highlightDueDate) {
+                    for (const keyValue of positions.keyValues) {
+                        if (keyValue.value.startsWith('due:')) {
+                            const deco = Decoration.mark({
+                                attributes: { class: "todo-txt-mode-due-date" }
+                            });
+                            decorations.push({
+                                from: line.from + keyValue.start,
+                                to: line.from + keyValue.end,
+                                decoration: deco
+                            });
+                        }
+                    }
+                }
+                
+                // 完了日のハイライト
+                if (settings.highlightCompletionDate && positions.completionDate) {
+                    const deco = Decoration.mark({
+                        attributes: { class: "todo-txt-mode-completion-date" }
+                    });
+                    decorations.push({
+                        from: line.from + positions.completionDate.start,
+                        to: line.from + positions.completionDate.end,
+                        decoration: deco
+                    });
+                }
+                
+                // 作成日のハイライト
+                if (settings.highlightCreationDate && positions.creationDate) {
+                    const deco = Decoration.mark({
+                        attributes: { class: "todo-txt-mode-creation-date" }
+                    });
+                    decorations.push({
+                        from: line.from + positions.creationDate.start,
+                        to: line.from + positions.creationDate.end,
+                        decoration: deco
+                    });
                 }
                 
                 i = line.to + 1;

@@ -6,15 +6,18 @@ import {
 import { TodoTxtSettings, DEFAULT_SETTINGS, TodoTxtSettingTab } from './settings';
 import { createTodoTxtExtension } from './syntax';
 import { TodoTxtSorter } from './sort';
+import { createMoveCompletedTasks } from './movetasks';
 
 export default class TodoTxtPlugin extends Plugin {
 	settings: TodoTxtSettings;
 	sorter: TodoTxtSorter;
+	moveCompletedTasks: () => Promise<void>;
 	
 	async onload() {
 		await this.loadSettings();
 		
 		this.sorter = new TodoTxtSorter(this.app, this.settings, this.isTodoTxtFile.bind(this));
+		this.moveCompletedTasks = createMoveCompletedTasks(this.app, this.settings, this.isTodoTxtFile.bind(this));
 		
 		this.addCommand({
 			id: 'done',
@@ -27,7 +30,7 @@ export default class TodoTxtPlugin extends Plugin {
 				if (checking) return isTodoFile;
 				
 				if (isTodoFile) {
-					this.sorter.moveCompletedTasks();
+					this.moveCompletedTasks();
 				}
 				return true;
 			}

@@ -1,6 +1,6 @@
 import { App, MarkdownView, Notice, Plugin, TFile, normalizePath } from 'obsidian';
 import { SortType, TodoTxtSettings } from './settings';
-import { parsePriorityValue, parseProjectTag, parseContextTag, parseDueDate } from './parser';
+import { parseTodo, sortTodosByPriority, sortTodosByProject, sortTodosByContext, sortTodosByDueDate } from './utils/todotxt-core';
 
 export class TodoTxtSorter {
     constructor(
@@ -9,21 +9,6 @@ export class TodoTxtSorter {
         private isTodoTxtFile: (path: string) => boolean
     ) {}
 
-    getPriorityValue(line: string): number {
-        return parsePriorityValue(line);
-    }
-    
-    getProjectTag(line: string): string {
-        return parseProjectTag(line);
-    }
-    
-    getContextTag(line: string): string {
-        return parseContextTag(line);
-    }
-    
-    getDueDate(line: string, defaultToFuture: boolean = true): string {
-        return parseDueDate(line, defaultToFuture);
-    }
 
     registerSortCommands(plugin: Plugin) {
         plugin.addCommand({
@@ -125,59 +110,62 @@ export class TodoTxtSorter {
             linesAfterBoundary = [];
         }
         
-        const tasksWithOriginalIndices: { line: string, isTask: boolean, isCompleted: boolean, index: number }[] = 
-            linesToSort.map((line, index) => {
-                const trimmed = line.trim();
-                const isTask = trimmed.length > 0 && !trimmed.startsWith('#');
-                const isCompleted = isTask && trimmed.startsWith('x ');
-                return { line, isTask, isCompleted, index };
-            });
+        // タスク行と非タスク行を分ける（元の行を保持）
+        const allLinesWithMeta = linesToSort.map((line, index) => {
+            const trimmed = line.trim();
+            const isTask = trimmed.length > 0 && !trimmed.startsWith('#');
+            const todo = isTask ? parseTodo(line) : null;
+            return {
+                line,
+                isTask,
+                todo,
+                originalIndex: index
+            };
+        });
         
-        const uncompletedTasks = tasksWithOriginalIndices.filter(t => t.isTask && !t.isCompleted);
-        const completedTasks = tasksWithOriginalIndices.filter(t => t.isTask && t.isCompleted);
+        // タスク行のみを抽出
+        const taskLines = allLinesWithMeta.filter(item => item.isTask && item.todo);
+        const nonTaskLines = allLinesWithMeta.filter(item => !item.isTask);
         
-        let sortFn: (a: { line: string, index: number }, b: { line: string, index: number }) => number;
+        if (taskLines.length === 0) {
+            new Notice('No tasks found to sort');
+            return;
+        }
+        
+        // タスクをソート
+        const todos = taskLines.map(item => item.todo!);
+        let sortedTodos;
         
         switch (sortType) {
             case SortType.Priority:
-                sortFn = (a, b) => {
-                    const priorityA = this.getPriorityValue(a.line);
-                    const priorityB = this.getPriorityValue(b.line);
-                    return priorityA - priorityB;
-                };
+                sortedTodos = sortTodosByPriority(todos, { completedTasksLast: true });
                 break;
-                
             case SortType.Project:
-                sortFn = (a, b) => {
-                    const projectA = this.getProjectTag(a.line);
-                    const projectB = this.getProjectTag(b.line);
-                    return projectA.localeCompare(projectB);
-                };
+                sortedTodos = sortTodosByProject(todos);
                 break;
-                
             case SortType.Context:
-                sortFn = (a, b) => {
-                    const contextA = this.getContextTag(a.line);
-                    const contextB = this.getContextTag(b.line);
-                    return contextA.localeCompare(contextB);
-                };
+                sortedTodos = sortTodosByContext(todos);
                 break;
-                
             case SortType.DueDate:
-                sortFn = (a, b) => {
-                    const dueDateA = this.getDueDate(a.line, true); // 期日なしは未来日扱い
-                    const dueDateB = this.getDueDate(b.line, true);
-                    return dueDateA.localeCompare(dueDateB);
-                };
+                sortedTodos = sortTodosByDueDate(todos);
                 break;
-                
             default:
-                sortFn = (a, b) => 0; // デフォルトでは並び替えなし
+                sortedTodos = todos; // デフォルトでは並び替えなし
         }
         
-        uncompletedTasks.sort(sortFn);
+        // ソート済みのTodoから元の行文字列を復元
+        const sortedTaskLines = sortedTodos.map(sortedTodo => {
+            const originalItem = taskLines.find(item => item.todo === sortedTodo);
+            return originalItem!.line;
+        });
         
-        const sortedTasks = [...uncompletedTasks.map(t => t.line), ...completedTasks.map(t => t.line)];
+        // 非タスク行も元の位置順で保持
+        const sortedNonTaskLines = nonTaskLines
+            .sort((a, b) => a.originalIndex - b.originalIndex)
+            .map(item => item.line);
+        
+        // 最終的な並び順: ソート済みタスク行 + 非タスク行
+        const sortedTasks = [...sortedTaskLines, ...sortedNonTaskLines];
         
         // 区切り文字がある場合のみ1つ空行を追加
         const sortedLines = linesAfterBoundary.length > 0 
@@ -190,74 +178,4 @@ export class TodoTxtSorter {
         new Notice(`Tasks sorted by ${sortType}`);
     }
 
-    async moveCompletedTasks() {
-        let completedTasks: string[] = [];
-        const doneFilePath = this.settings.doneFilePath;
-        
-        let todoFiles: TFile[] = [];
-        
-        for (const path of this.settings.todoFilePaths) {
-            const file = this.app.vault.getAbstractFileByPath(path);
-            if (file instanceof TFile) {
-                todoFiles.push(file);
-            }
-        }
-        
-        if (todoFiles.length === 0) {
-            new Notice('No todo files found matching your configured paths');
-            return;
-        }
-        
-        for (const file of todoFiles) {
-            const content = await this.app.vault.cachedRead(file);
-            const lines = content.split('\n');
-            const completedLines: string[] = [];
-            const remainingLines: string[] = [];
-            
-            for (const line of lines) {
-                const trimmedLine = line.trim();
-                if (trimmedLine.startsWith('x ')) {
-                    completedLines.push(line);
-                } else {
-                    remainingLines.push(line);
-                }
-            }
-            
-            if (completedLines.length > 0) {
-                completedTasks = [...completedTasks, ...completedLines];
-                await this.app.vault.process(file, (data) => {
-                    return remainingLines.join('\n');
-                });
-            }
-        }
-        
-        if (completedTasks.length > 0) {
-            const normalizedDonePath = normalizePath(doneFilePath);
-            let doneFile = this.app.vault.getAbstractFileByPath(normalizedDonePath);
-            if (!doneFile) {
-                try {
-                    const dirPath = doneFilePath.substring(0, doneFilePath.lastIndexOf('/'));
-                    if (dirPath && !this.app.vault.getAbstractFileByPath(normalizePath(dirPath))) {
-                        await this.app.vault.createFolder(normalizePath(dirPath));
-                    }
-                    
-                    doneFile = await this.app.vault.create(doneFilePath, completedTasks.join('\n'));
-                } catch (error) {
-                    new Notice(`Failed to create done file: ${error}`);
-                    return;
-                }
-            } else if (doneFile instanceof TFile) {
-                const existingContent = await this.app.vault.cachedRead(doneFile);
-                const newContent = completedTasks.join('\n') + 
-                    (existingContent ? '\n' + existingContent : '');
-                await this.app.vault.process(doneFile, (data) => {
-                    return newContent;
-                });
-            }
-            
-            new Notice(`Moved ${completedTasks.length} completed task(s) to ${doneFilePath}`);
-        } else {
-            new Notice('No completed tasks found');
-        }
-    }
 }
