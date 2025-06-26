@@ -2,12 +2,14 @@
 
 Todo.txt Mode is an Obsidian plugin that provides support for the [todo.txt](https://github.com/todotxt/todo.txt) file format in [Obsidian](https://obsidian.md).
 
-[![Image from Gyazo](https://i.gyazo.com/63a9c805d766d5db066bcc1f2edf2ef5.png)](https://gyazo.com/63a9c805d766d5db066bcc1f2edf2ef5)
+[![Image from Gyazo](https://i.gyazo.com/e0e9a7ecb8a9f5fc050c85bbe544c963.png)](https://gyazo.com/e0e9a7ecb8a9f5fc050c85bbe544c963)
 
 ## Features
 
 - **Syntax Highlighting**: Automatically highlights elements within todo.txt files
   - Strikethrough for completed tasks (lines beginning with `x `)
+  - Highlighting for completion dates (date following `x ` in completed tasks)
+  - Highlighting for creation dates (standalone dates at the beginning of tasks)
   - Highlighting for project tags (`+project`)
   - Highlighting for context tags (`@context`)
   - Highlighting for priority markers (`(A)`, `(B)`, `(123)`)
@@ -91,19 +93,6 @@ A task with due:2023-05-15 date
 
 Visit the [official website](https://github.com/todotxt/todo.txt) for more details.
 
-## For Developers
-
-### Release Process
-```bash
-# Update version number
-npm run version
-
-# Create and push tag
-git tag -a 1.0.0 -m "1.0.0" && git push origin 1.0.0
-```
-
-Pushing a tag will automatically create a GitHub release.
-
 ---
 
 # Todo.txt Mode for Obsidian [JA]
@@ -114,6 +103,8 @@ Todo.txt Mode は [Obsidian](https://obsidian.md) で [todo.txt](https://github.
 
 - **シンタックスハイライト**: todo.txtファイル内の要素を自動的に強調表示
   - 完了タスク（`x `で始まる行）に取り消し線表示
+  - 完了日時（完了タスクの`x `に続く日付）をハイライト
+  - 作成日時（タスクの冒頭にある単独の日付）をハイライト
   - プロジェクトタグ（`+project`）をハイライト
   - コンテキストタグ（`@context`）をハイライト
   - 優先度（`(A)`、`(B)`、`(123)`）をハイライト
