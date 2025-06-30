@@ -1,8 +1,8 @@
 import { Decoration, DecorationSet, EditorView as CMEditorView, ViewPlugin, ViewUpdate, PluginValue } from '@codemirror/view';
 import { RangeSetBuilder } from '@codemirror/state';
-import { App, TFile } from 'obsidian';
+import { App } from 'obsidian';
 import { TodoTxtSettings } from './settings';
-import { parseTodo, ElementPosition } from './utils/todotxt-core';
+import { parseTodo, isDueDateKeyValue, isRecurrenceKeyValue } from './utils/todotxt-core';
 
 
 export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) => boolean, getSettings: () => TodoTxtSettings) {
@@ -51,7 +51,6 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                 const todo = parseTodo(lineText);
                 const positions = todo.getElementPositions();
                 
-                // 完了タスクの行全体ハイライト
                 if (settings.highlightCompletedTask && todo.isDone()) {
                     const deco = Decoration.line({
                         attributes: { class: "todo-txt-mode-completed" }
@@ -63,9 +62,7 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     });
                 }
                 
-                // 各要素のハイライト処理
                 
-                // プロジェクトタグのハイライト
                 if (settings.highlightProject) {
                     for (const project of positions.projects) {
                         const deco = Decoration.mark({
@@ -79,7 +76,6 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     }
                 }
                 
-                // コンテキストタグのハイライト
                 if (settings.highlightContext) {
                     for (const context of positions.contexts) {
                         const deco = Decoration.mark({
@@ -93,7 +89,6 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     }
                 }
                 
-                // 優先度のハイライト
                 if (settings.highlightPriority && positions.priority) {
                     const deco = Decoration.mark({
                         attributes: { class: "todo-txt-mode-priority" }
@@ -105,10 +100,9 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     });
                 }
                 
-                // 期日のハイライト
                 if (settings.highlightDueDate) {
                     for (const keyValue of positions.keyValues) {
-                        if (keyValue.value.startsWith('due:')) {
+                        if (isDueDateKeyValue(keyValue.value)) {
                             const deco = Decoration.mark({
                                 attributes: { class: "todo-txt-mode-due-date" }
                             });
@@ -121,7 +115,21 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     }
                 }
                 
-                // 完了日のハイライト
+                if (settings.highlightRecurringTask) {
+                    for (const keyValue of positions.keyValues) {
+                        if (isRecurrenceKeyValue(keyValue.value)) {
+                            const deco = Decoration.mark({
+                                attributes: { class: "todo-txt-mode-recurring-task" }
+                            });
+                            decorations.push({
+                                from: line.from + keyValue.start,
+                                to: line.from + keyValue.end,
+                                decoration: deco
+                            });
+                        }
+                    }
+                }
+                
                 if (settings.highlightCompletionDate && positions.completionDate) {
                     const deco = Decoration.mark({
                         attributes: { class: "todo-txt-mode-completion-date" }
@@ -133,7 +141,6 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                     });
                 }
                 
-                // 作成日のハイライト
                 if (settings.highlightCreationDate && positions.creationDate) {
                     const deco = Decoration.mark({
                         attributes: { class: "todo-txt-mode-creation-date" }

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-このファイルはこのリポジトリのコードに関するClaudeのガイダンスを提供します。
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## プロジェクト概要
 
@@ -14,6 +14,7 @@
 - 期日（`due:yyyy-mm-dd`）のハイライト
 - 完了タスクを専用ファイルに移動するコマンド
 - タスクを様々な条件（優先度、プロジェクト、コンテキスト、期日）でソートするコマンド
+- 繰り返しタスクの自動生成（`rec:d`、`rec:w`、`rec:m`、`rec:y`）
 
 ## 開発コマンド
 
@@ -36,8 +37,17 @@ npm run test:watch
 # テストカバレッジ
 npm run test:coverage
 
+# Lint実行
+npm run lint
+
+# Lint自動修正
+npm run lint:fix
+
 # バージョン番号の更新（manifest.jsonとversions.jsonを更新）
 npm run version
+
+# 全体的なチェック（lint、型チェック、テストを一括実行）
+npm run check
 ```
 
 ## アーキテクチャ
@@ -61,11 +71,23 @@ npm run version
    - ハイライト設定（有効/無効、色）
    - ソート設定とバウンダリマーカー設定
 
-4. **タスクソートとタスク移動機能（sort.ts）**:
+4. **タスクソート機能（sort.ts）**:
    - 優先度、プロジェクト、コンテキスト、期日によるソート
+
+5. **タスク移動機能（movetasks.ts）**:
    - 完了タスク（`x `で始まる行）を抽出
    - 元ファイルから削除
    - 完了タスク専用ファイルに追加
+
+6. **タスク監視機能（task-watcher.ts）**:
+   - ファイル変更の監視
+   - リアルタイムタスク更新
+
+7. **Todo.txtコアライブラリ（utils/todotxt-core/）**:
+   - parser.ts: Todo.txt形式のパーサー機能
+   - sorter.ts: タスクソート機能
+   - recurrence.ts: 繰り返しタスクの処理
+   - interfaces.ts: 型定義
 
 ## ファイル構造
 
@@ -74,11 +96,21 @@ src/
 ├── main.ts              # プラグインのメインコード、ライフサイクル管理
 ├── syntax.ts            # 構文ハイライト関連の機能（CodeMirror ViewPlugin）
 ├── settings.ts          # 設定関連のインターフェースと設定タブUI
-├── sort.ts              # タスクソート機能とタスク移動機能
-├── parser.ts            # Todo.txt形式のパーサー機能
+├── sort.ts              # タスクソート機能
+├── movetasks.ts         # タスク移動機能
+├── task-watcher.ts      # タスク監視機能
+├── utils/
+│   └── todotxt-core/    # Todo.txtコアライブラリ
+│       ├── parser.ts    # Todo.txt形式のパーサー機能
+│       ├── sorter.ts    # タスクソート機能
+│       ├── recurrence.ts # 繰り返しタスクの処理
+│       ├── interfaces.ts # 型定義
+│       ├── index.ts     # エクスポート
+│       └── __tests__/   # コアライブラリのテスト
 └── __tests__/           # テストファイル
-    ├── sort.test.ts     # ソート機能のテスト
-    └── syntax.test.ts   # 構文ハイライトのテスト
+    ├── recurrence.test.ts    # 繰り返し機能のテスト
+    ├── syntax.test.ts        # 構文ハイライトのテスト
+    └── task-watcher.test.ts  # タスク監視機能のテスト
 
 # 設定ファイル
 ├── manifest.json        # プラグイン情報
@@ -125,135 +157,37 @@ Obsidianの開発者モードでプラグインをテストするには：
 
 ### ビルドプロセス
 - TypeScriptの型チェックを必ず実行: `npx tsc -noEmit -skipLibCheck`
+- Lintチェックを実行: `npm run lint`
 - プロダクションビルド前に開発ビルドで動作確認: `npm run dev`
 
-## Obsidianプラグイン開発のベストプラクティス
+## プロジェクト特有の重要事項
 
-### コード品質
+### Todo.txtコアライブラリの活用
+- `utils/todotxt-core/` 内のライブラリを使用してTodo.txt形式の処理を行う
+- パーサー、ソーター、繰り返し処理は既に実装済み
+- 新機能追加時はコアライブラリの拡張を検討する
 
-### 命名規則
-- 一貫した命名スタイルを使用する（関数には camelCase、クラスには PascalCase）
-- CSS クラス名にプレフィックスを追加し、Obsidian クラスとの競合を避ける
+### テストカバレッジの維持
+- 新機能には必ずテストを追加
+- コアライブラリの変更時は`utils/todotxt-core/__tests__/`のテストも更新
+- 繰り返しタスク機能のテストは特に重要
 
-### コーディングスタイル
-- `var` の代わりに `let` または `const` を使用する
-- 型安全性のために TypeScript を活用する（`event.target as any` ではなく `event.target as HTMLInputElement`）
-- サンプルプラグインからのボイラープレートコードを削除する
-- スタイル定義は JavaScript ではなく CSS ファイルに移動する
-
-## セキュリティの懸念事項
-
-### 安全な DOM 操作
-- `innerHTML`/`outerHTML` を避ける（セキュリティリスク）
-- 代わりに DOM API または Obsidian ヘルパー関数を使用する
-- ユーザー入力は `sanitizeHTMLToDom` でサニタイズする
-
-### 安全でないコード評価の回避
-- `eval()` や類似の関数を使用しない
-- 信頼できないデータの実行を防ぐ
-- 安全な代替手段を使用する（`eval()` の代わりに `JSON.parse()` など）
-
-### ネットワークリクエストと URL 処理
-- クロスプラットフォーム互換性のために Obsidian の `requestUrl` メソッドを使用する
-- 開く前に URL を検証し正規化する
-- URL プロトコルをチェックする（http/https に制限）
-
-## パフォーマンスの問題
-
-### メモリリークの防止
-- Obsidian のメソッドを使用して、イベントリスナーを適切に登録する
-- レンダーメソッドでのラムダ関数を避ける
-- イベントハンドラをコンストラクタにバインドする
-
-### 効率的なファイル操作
-- キャッシュされたメソッドを使用する（`read` ではなく `cachedRead`）
-- 非効率な操作を避ける（ファイルをバッチで処理する）
-- 適切な API メソッドを使用する（`getAbstractFileByPath`）
-
-### バックグラウンドタスクの最適化
-- 繰り返しタスクに適切な間隔を設定する（≥1000ms）
-- 頻繁なイベントにはスロットリングとデバウンシングを実装する
-
-## 必須ファイルと設定
-
-### 必須ファイル
-- リポジトリ: README.md、manifest.json、LICENSE、versions.json、ソースコード
-- GitHub リリース: main.js、manifest.json、styles.css（該当する場合）
-
-### manifest.json の要件
-- すべての必須フィールドを含める（id、name、version、minAppVersion など）
-- 命名規則に従う（id に「obsidian」を含めない、名前に「Plugin」を含めない）
-- バージョンは GitHub リリースタグと完全に一致する必要がある（「v」プレフィックスなし）
-
-### versions.json の要件
-- プラグインバージョンと最小互換 Obsidian バージョンをマッピングする
-
-## ドキュメント要件
-
-### README.md
-- 明確な目的説明
-- 使用方法の説明
-- スクリーンショット/デモ（該当する場合）
-- 他のプラグインからのコードに対する適切な帰属
-
-### ライセンス要件
-- リポジトリのルートに LICENSE ファイルを含める
-- 適切なオープンソースライセンスを選択する
-- README.md に適切な帰属を確保する
-
-## 互換性への配慮
-
-### クロスプラットフォーム互換性
-- 複数のプラットフォームでテストする
-- プラットフォームに依存しない API を使用する
-- プラットフォーム固有のパス区切り文字の代わりに Obsidian の `normalizePath` を使用する
-
-### Obsidian バージョンの互換性
-- manifest.json で minAppVersion を指定する
-- 新しい機能を使用する場合は API の可用性をチェックする
-- 古いバージョン用のフォールバックを提供する
-
-### モバイル互換性
-- iOS JavaScript の制限を考慮する（後方参照正規表現を避ける）
-- タッチ操作のための UI 要素を設計する（サイズを適切に）
-
-## ライセンスの問題
-
-### ライセンスの選択
-- 適切なオープンソースライセンスを選択する
-- LICENSE ファイルに完全なライセンステキストを含める
-- package.json にライセンスを指定する
-
-### コードの帰属
-- 他のソースからのコードに適切に帰属を表示する
-- 借用コードとのライセンス互換性を確保する
-
-## Obsidian API のベストプラクティス
-
-### リソース登録とライフサイクル
-- イベント、DOM イベント、インターバルに適切な登録メソッドを使用する
-- onunload での自動クリーンアップを許可する
-
-### 安全な DOM 操作
-- Obsidian のヘルパー関数（createEl）を使用する
-- ユーザーコンテンツをサニタイズする
-
-### ファイル操作
-- Vault API を適切に使用する
-- メタデータキャッシュを活用する
-
-### プラグイン設定の管理
-- Obsidian の設定 API を使用する（loadData/saveData）
-
-### UI 操作
-- Obsidian の組み込み UI コンポーネントを使用する（Notice、Modal）
+### Obsidian API の適切な使用
+- DOM操作は`innerHTML`を避け、Obsidianヘルパー関数を使用
+- ファイル操作は`this.app.vault.cachedRead`を使用
+- イベントリスナーは`this.registerDomEvent`で登録
+- 設定管理は`loadData`/`saveData`を使用
 
 ## 開発前チェックリスト
-1. **テスト実行**: `npm test` でテストがパスすることを確認
-2. **型チェック**: `npx tsc -noEmit -skipLibCheck` でTypeScriptエラーがないことを確認
+1. **統合チェック**: `npm run check` でLint、型チェック、テストを一括実行
+2. **個別チェック** (必要に応じて):
+   - **テスト実行**: `npm test` でテストがパスすることを確認
+   - **型チェック**: `npx tsc -noEmit -skipLibCheck` でTypeScriptエラーがないことを確認
+   - **Lint確認**: `npm run lint` でコード品質を確認
 3. **ビルド確認**: `npm run build` でビルドが成功することを確認
-4. **コード品質**: 一貫した命名規則とコーディングスタイルを維持
-5. **セキュリティ**: DOM操作やユーザー入力の適切な処理
-6. **パフォーマンス**: メモリリークやブロッキング処理の回避
-7. **互換性**: クロスプラットフォーム・モバイル対応
-8. **Obsidian API**: 適切なAPI使用とリソース管理
+4. **余計なコメント不要**: コードを読んで理解できない特別な意味を持つ箇所以外はコメント不要
+
+## 重要なテスト対象機能
+- **繰り返しタスク機能**: `rec:d`、`rec:w`、`rec:m`、`rec:y`形式の処理
+- **構文ハイライト**: CodeMirror ViewPluginの装飾適用
+- **タスク監視**: ファイル変更の検知と処理

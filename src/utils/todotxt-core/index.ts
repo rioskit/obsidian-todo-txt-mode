@@ -10,7 +10,11 @@ export type {
 } from './interfaces';
 
 export { 
-    parseTodo 
+    parseTodo,
+    isCompletedTask,
+    isDueDateKeyValue,
+    isRecurrenceKeyValue,
+    isCommentLine
 } from './parser';
 
 export {
@@ -19,3 +23,23 @@ export {
     sortTodosByContext,
     sortTodosByDueDate
 } from './sorter';
+
+export {
+    getNextRecurringTask,
+    parseRecurrence,
+    addInterval,
+    getCurrentDate
+} from './recurrence';
+
+export type {
+    RecurrenceInfo
+} from './recurrence';
+
+export {
+    buildTaskString
+} from './string-builder';
+
+export {
+    shouldAddCompletionDate,
+    addCompletionDate
+} from './completion-date';

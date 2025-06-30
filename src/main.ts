@@ -3,21 +3,22 @@ import {
 	Plugin,
 } from 'obsidian';
 
-import { TodoTxtSettings, DEFAULT_SETTINGS, TodoTxtSettingTab } from './settings';
+import { TodoTxtSettings, DEFAULT_SETTINGS, TodoTxtSettingTab, SortType } from './settings';
 import { createTodoTxtExtension } from './syntax';
-import { TodoTxtSorter } from './sort';
+import { createTaskWatcher } from './task-watcher';
+import { createTodoTxtSorter } from './sort';
 import { createMoveCompletedTasks } from './movetasks';
 
 export default class TodoTxtPlugin extends Plugin {
 	settings: TodoTxtSettings;
-	sorter: TodoTxtSorter;
+	sorter?: { registerSortCommands: (plugin: Plugin) => void; sortTasks: (sortType: SortType) => Promise<void> };
 	moveCompletedTasks: () => Promise<void>;
 	
 	async onload() {
 		await this.loadSettings();
 		
-		this.sorter = new TodoTxtSorter(this.app, this.settings, this.isTodoTxtFile.bind(this));
-		this.moveCompletedTasks = createMoveCompletedTasks(this.app, this.settings, this.isTodoTxtFile.bind(this));
+		this.sorter = createTodoTxtSorter(this.app, this.settings, this.isTodoTxtFile.bind(this));
+		this.moveCompletedTasks = createMoveCompletedTasks(this.app, this.settings);
 		
 		this.addCommand({
 			id: 'done',
@@ -35,20 +36,19 @@ export default class TodoTxtPlugin extends Plugin {
 				return true;
 			}
 		});
-		this.sorter.registerSortCommands(this);
+		this.sorter?.registerSortCommands(this);
 		this.addSettingTab(new TodoTxtSettingTab(this.app, this));
 
 		this.registerEditorExtension([
-			createTodoTxtExtension(this.app, this.isTodoTxtFile.bind(this), () => this.settings)
+			createTodoTxtExtension(this.app, this.isTodoTxtFile.bind(this), () => this.settings),
+			createTaskWatcher(this.app, this.isTodoTxtFile.bind(this), () => this.settings)
 		]);
 		
 
 	}
 
 	onunload() {
-		if (this.sorter) {
-			this.sorter = null as unknown as TodoTxtSorter;
-		}
+		this.sorter = undefined;
 	}
 	
 	async loadSettings() {
