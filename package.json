@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-todo-txt-mode",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Support for todo.txt file format with syntax highlighting and task management",
 	"main": "main.js",
 	"scripts": {
