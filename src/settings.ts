@@ -34,6 +34,12 @@ export interface TodoTxtSettings {
 
     highlightCreationDate: boolean;
     creationDateColor: string;
+    
+    highlightRecurringTask: boolean;
+    recurringTaskColor: string;
+    
+    enableRecurringTasks: boolean;
+    enableAutoCompletionDate: boolean;
 }
 
 export const DEFAULT_SETTINGS: TodoTxtSettings = {
@@ -61,7 +67,13 @@ export const DEFAULT_SETTINGS: TodoTxtSettings = {
     completionDateColor: "#FF9800",
 
     highlightCreationDate: true,
-    creationDateColor: "#9C27B0"
+    creationDateColor: "#9C27B0",
+    
+    highlightRecurringTask: true,
+    recurringTaskColor: "#FF5722",
+    
+    enableRecurringTasks: true,
+    enableAutoCompletionDate: true
 }
 
 export class TodoTxtSettingTab extends PluginSettingTab {
@@ -72,20 +84,11 @@ export class TodoTxtSettingTab extends PluginSettingTab {
         this.plugin = plugin;
     }
     
-    /**
-     * ハイライト設定項目を作成する共通関数（トグルのみ）
-     * @param containerEl コンテナ要素
-     * @param name 設定名
-     * @param desc 設定の説明
-     * @param enableKey 有効/無効の設定キー
-     * @param colorKey 色の設定キー（現在は未使用）
-     */
     createHighlightSetting(
         containerEl: HTMLElement,
         name: string,
         desc: string,
         enableKey: keyof TodoTxtSettings,
-        colorKey: keyof TodoTxtSettings,
     ): void {
         new Setting(containerEl)
             .setName(name)
@@ -99,14 +102,6 @@ export class TodoTxtSettingTab extends PluginSettingTab {
             );
     }
     
-    /**
-     * テキスト設定項目を作成する共通関数
-     * @param containerEl コンテナ要素
-     * @param name 設定名
-     * @param desc 設定の説明
-     * @param placeholder プレースホルダーテキスト
-     * @param key 設定キー
-     */
     createTextSetting(
         containerEl: HTMLElement, 
         name: string, 
@@ -121,7 +116,6 @@ export class TodoTxtSettingTab extends PluginSettingTab {
                 .setPlaceholder(placeholder)
                 .setValue(this.plugin.settings[key] as string)
                 .onChange(async (value) => {
-                    // Normalize path for file path settings
                     const normalizedValue = (key === 'doneFilePath') ? normalizePath(value) : value;
                     (this.plugin.settings[key] as string) = normalizedValue;
                     await this.plugin.saveSettings();
@@ -201,57 +195,97 @@ export class TodoTxtSettingTab extends PluginSettingTab {
             containerEl,
             'Highlight completed tasks',
             'Apply strikethrough to completed tasks (starting with "x ")',
-            'highlightCompletedTask',
-            'completedTaskColor'
+            'highlightCompletedTask'
         );
 
         this.createHighlightSetting(
             containerEl,
             'Highlight projects',
             'Apply color to projects ("+project")',
-            'highlightProject',
-            'projectColor'
+            'highlightProject'
         );
 
         this.createHighlightSetting(
             containerEl,
             'Highlight contexts',
             'Apply color to contexts ("@context")',
-            'highlightContext',
-            'contextColor'
+            'highlightContext'
         );
 
         this.createHighlightSetting(
             containerEl,
             'Highlight priorities',
             'Apply color to priorities ("(A)", "(1)")',
-            'highlightPriority',
-            'priorityColor'
+            'highlightPriority'
         );
 
         this.createHighlightSetting(
             containerEl,
             'Highlight due dates',
             'Apply color to due dates ("due:yyyy-mm-dd")',
-            'highlightDueDate',
-            'dueDateColor'
+            'highlightDueDate'
         );
 
         this.createHighlightSetting(
             containerEl,
             'Highlight completion dates',
             'Apply color to completion dates in completed tasks ("x 2011-03-02")',
-            'highlightCompletionDate',
-            'completionDateColor'
+            'highlightCompletionDate'
         );
 
         this.createHighlightSetting(
             containerEl,
             'Highlight creation dates',
             'Apply color to creation dates ("2011-03-01 Task" or "x date1 2011-03-01")',
-            'highlightCreationDate',
-            'creationDateColor'
+            'highlightCreationDate'
         );
+
+        this.createHighlightSetting(
+            containerEl,
+            'Highlight recurring tasks',
+            'Apply color to recurring tasks ("rec:value")',
+            'highlightRecurringTask'
+        );
+        
+        new Setting(containerEl).setHeading().setName('Task management');
+        
+        new Setting(containerEl)
+            .setName('Enable auto completion date')
+            .setDesc('Automatically add completion date when marking tasks as complete')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableAutoCompletionDate)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableAutoCompletionDate = value;
+                    
+                    // If disabling auto completion date, also disable recurring tasks
+                    if (!value && this.plugin.settings.enableRecurringTasks) {
+                        this.plugin.settings.enableRecurringTasks = false;
+                    }
+                    
+                    await this.plugin.saveSettings();
+                    // Refresh the settings display to update the recurring tasks toggle state
+                    this.display();
+                })
+            );
+        
+        new Setting(containerEl)
+            .setName('Enable recurring tasks')
+            .setDesc('Automatically create new tasks when completing recurring tasks (rec:). Requires "Enable auto completion date" to be enabled.')
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.plugin.settings.enableRecurringTasks)
+                    .onChange(async (value) => {
+                        this.plugin.settings.enableRecurringTasks = value;
+                        await this.plugin.saveSettings();
+                    });
+                
+                // Disable toggle if auto completion date is disabled
+                if (!this.plugin.settings.enableAutoCompletionDate) {
+                    toggle.setDisabled(true);
+                    toggle.setValue(false);
+                    this.plugin.settings.enableRecurringTasks = false;
+                }
+            });
         
         new Setting(containerEl).setHeading().setName('Sort settings');
         

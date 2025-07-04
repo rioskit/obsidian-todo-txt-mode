@@ -42,14 +42,21 @@ settings:
     description: Color for completion dates in completed tasks (x 2011-03-02)
     type: variable-color
     format: hex
-    default: '#FF9800'
+    default: '#E6CC80'
     
   - id: todo-txt-mode-creation-date-color
     title: Creation Date Color
     description: Color for creation dates (2011-03-01 Task or x date1 2011-03-01 Task)
     type: variable-color
     format: hex
-    default: '#9C27B0'
+    default: '#C8A2C8'
+    
+  - id: todo-txt-mode-recurring-task-color
+    title: Recurring Task Color
+    description: Color for recurring tasks (rec:value)
+    type: variable-color
+    format: hex
+    default: '#607D8B'
 */
 
 /* Todo.txt Mode スタイル定義 */
@@ -89,22 +96,24 @@ settings:
 
 /* 完了日（x 2011-03-02） */
 .todo-txt-mode-completion-date {
-  color: var(--todo-txt-mode-completion-date-color, #FF9800);
-  font-size: 90%;
-  font-weight: 600;
-  background-color: rgba(255, 152, 0, 0.1);
-  padding: 1px 4px;
-  border-radius: 3px;
+  color: var(--todo-txt-mode-completion-date-color, #E6CC80);
+  font-size: 85%;
+  font-weight: normal;
 }
 
 /* 作成日（2011-03-01 Task or x date1 2011-03-01 Task） */
 .todo-txt-mode-creation-date {
-  color: var(--todo-txt-mode-creation-date-color, #9C27B0);
+  color: var(--todo-txt-mode-creation-date-color, #C8A2C8);
+  font-size: 85%;
+  font-weight: normal;
+}
+
+/* 繰り返しタスク（rec:value） */
+.todo-txt-mode-recurring-task {
+  color: var(--todo-txt-mode-recurring-task-color, #607D8B);
   font-size: 90%;
-  font-weight: 600;
-  background-color: rgba(156, 39, 176, 0.1);
-  padding: 1px 4px;
-  border-radius: 3px;
+  text-decoration: underline;
+  font-weight: normal;
 }
 
 /* ファイル識別のためのマーカー */

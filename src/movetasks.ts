@@ -1,16 +1,16 @@
 import { App, Notice, TFile, normalizePath } from 'obsidian';
 import { TodoTxtSettings } from './settings';
+import { isCompletedTask } from './utils/todotxt-core';
 
 export function createMoveCompletedTasks(
     app: App, 
-    settings: TodoTxtSettings, 
-    isTodoTxtFile: (path: string) => boolean
+    settings: TodoTxtSettings
 ) {
     return async function moveCompletedTasks() {
         let completedTasks: string[] = [];
         const doneFilePath = settings.doneFilePath;
         
-        let todoFiles: TFile[] = [];
+        const todoFiles: TFile[] = [];
         
         for (const path of settings.todoFilePaths) {
             const file = app.vault.getAbstractFileByPath(path);
@@ -31,8 +31,7 @@ export function createMoveCompletedTasks(
             const remainingLines: string[] = [];
             
             for (const line of lines) {
-                const trimmedLine = line.trim();
-                if (trimmedLine.startsWith('x ')) {
+                if (isCompletedTask(line)) {
                     completedLines.push(line);
                 } else {
                     remainingLines.push(line);
@@ -41,7 +40,7 @@ export function createMoveCompletedTasks(
             
             if (completedLines.length > 0) {
                 completedTasks = [...completedTasks, ...completedLines];
-                await app.vault.process(file, (data) => {
+                await app.vault.process(file, () => {
                     return remainingLines.join('\n');
                 });
             }
@@ -66,7 +65,7 @@ export function createMoveCompletedTasks(
                 const existingContent = await app.vault.cachedRead(doneFile);
                 const newContent = completedTasks.join('\n') + 
                     (existingContent ? '\n' + existingContent : '');
-                await app.vault.process(doneFile, (data) => {
+                await app.vault.process(doneFile, () => {
                     return newContent;
                 });
             }

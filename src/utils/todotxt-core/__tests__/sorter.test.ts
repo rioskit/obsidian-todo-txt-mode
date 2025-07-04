@@ -2,252 +2,203 @@ import { parseTodo } from '../parser';
 import { sortTodosByPriority, sortTodosByProject, sortTodosByContext, sortTodosByDueDate } from '../sorter';
 
 describe('Todo Sorter Functions', () => {
+    const createTestTodos = (todoTexts: string[]) => todoTexts.map(text => parseTodo(text));
     describe('sortTodosByPriority', () => {
-        test('sorts tasks by priority A, B, C', () => {
-            const todos = [
-                parseTodo('(C) Low priority task'),
-                parseTodo('(A) High priority task'),
-                parseTodo('(B) Medium priority task'),
-                parseTodo('No priority task')
-            ];
-
-            const sorted = sortTodosByPriority(todos);
-            
-            expect(sorted[0].priority()).toBe('A');
-            expect(sorted[1].priority()).toBe('B');
-            expect(sorted[2].priority()).toBe('C');
-            expect(sorted[3].priority()).toBeNull();
+        const priorityTests = [
+            {
+                name: 'alphabetic priorities A, B, C',
+                input: ['(C) Low priority task', '(A) High priority task', '(B) Medium priority task', 'No priority task'],
+                expected: ['A', 'B', 'C', null]
+            },
+            {
+                name: 'numeric priorities',
+                input: ['(3) Priority 3 task', '(1) Priority 1 task', '(2) Priority 2 task', '(A) Priority A task'],
+                expected: ['1', '2', '3', 'A']
+            }
+        ];
+        
+        priorityTests.forEach(({ name, input, expected }) => {
+            it(`should sort ${name}`, () => {
+                const todos = createTestTodos(input);
+                const sorted = sortTodosByPriority(todos);
+                sorted.forEach((todo, index) => {
+                    expect(todo.priority()).toBe(expected[index]);
+                });
+            });
         });
-
-        test('handles numeric priorities correctly', () => {
-            const todos = [
-                parseTodo('(3) Priority 3 task'),
-                parseTodo('(1) Priority 1 task'),
-                parseTodo('(2) Priority 2 task'),
-                parseTodo('(A) Priority A task')
-            ];
-
-            const sorted = sortTodosByPriority(todos);
-            
-            expect(sorted[0].priority()).toBe('1');
-            expect(sorted[1].priority()).toBe('2');
-            expect(sorted[2].priority()).toBe('3');
-            expect(sorted[3].priority()).toBe('A');
-        });
-
-        test('puts completed tasks last when option is enabled', () => {
-            const todos = [
-                parseTodo('x (A) Completed high priority'),
-                parseTodo('(B) Active medium priority'),
-                parseTodo('x (C) Completed low priority'),
-                parseTodo('(A) Active high priority')
-            ];
-
+        
+        it('puts completed tasks last when option is enabled', () => {
+            const todos = createTestTodos([
+                'x (A) Completed high priority',
+                '(B) Active medium priority',
+                'x (C) Completed low priority',
+                '(A) Active high priority'
+            ]);
             const sorted = sortTodosByPriority(todos, { completedTasksLast: true });
-            
-            expect(sorted[0].priority()).toBe('A');
-            expect(sorted[0].isDone()).toBe(false);
-            expect(sorted[1].priority()).toBe('B');
-            expect(sorted[1].isDone()).toBe(false);
-            expect(sorted[2].priority()).toBeNull();
-            expect(sorted[2].isDone()).toBe(true);
-            expect(sorted[3].priority()).toBeNull();
-            expect(sorted[3].isDone()).toBe(true);
+            const expectedOrder = [['A', false], ['B', false], ['A', true], ['C', true]];
+            sorted.forEach((todo, index) => {
+                expect(todo.priority()).toBe(expectedOrder[index][0]);
+                expect(todo.isDone()).toBe(expectedOrder[index][1]);
+            });
         });
-
-        test('maintains original order for same priority', () => {
-            const todos = [
-                parseTodo('(A) First A task'),
-                parseTodo('(A) Second A task'),
-                parseTodo('(A) Third A task')
-            ];
-
+        
+        it('maintains original order for same priority', () => {
+            const todos = createTestTodos(['(A) First A task', '(A) Second A task', '(A) Third A task']);
             const sorted = sortTodosByPriority(todos);
-            
-            expect(sorted[0].task()).toBe('First A task');
-            expect(sorted[1].task()).toBe('Second A task');
-            expect(sorted[2].task()).toBe('Third A task');
+            const expectedTasks = ['First A task', 'Second A task', 'Third A task'];
+            sorted.forEach((todo, index) => {
+                expect(todo.task()).toBe(expectedTasks[index]);
+            });
         });
     });
-
     describe('sortTodosByProject', () => {
-        test('sorts tasks by project name alphabetically', () => {
-            const todos = [
-                parseTodo('Task with +zebra project'),
-                parseTodo('Task with +apple project'),
-                parseTodo('Task with +banana project'),
-                parseTodo('Task without project')
-            ];
-
-            const sorted = sortTodosByProject(todos);
-            
-            expect(sorted[0].projects()).toEqual(['apple']);
-            expect(sorted[1].projects()).toEqual(['banana']);
-            expect(sorted[2].projects()).toEqual(['zebra']);
-            expect(sorted[3].projects()).toEqual([]);
+        const projectTests = [
+            {
+                name: 'alphabetically',
+                input: ['Task with +zebra project', 'Task with +apple project', 'Task with +banana project', 'Task without project'],
+                expected: [['apple'], ['banana'], ['zebra'], []]
+            },
+            {
+                name: 'multiple projects by first project',
+                input: ['Task with +zebra +apple projects', 'Task with +banana +charlie projects'],
+                expected: [['banana', 'charlie'], ['zebra', 'apple']]
+            }
+        ];
+        
+        projectTests.forEach(({ name, input, expected }) => {
+            it(`should sort ${name}`, () => {
+                const todos = createTestTodos(input);
+                const sorted = sortTodosByProject(todos);
+                sorted.forEach((todo, index) => {
+                    expect(todo.projects()).toEqual(expected[index]);
+                });
+            });
         });
-
-        test('handles multiple projects by using first project', () => {
-            const todos = [
-                parseTodo('Task with +zebra +apple projects'),
-                parseTodo('Task with +banana +charlie projects')
-            ];
-
-            const sorted = sortTodosByProject(todos);
-            
-            expect(sorted[0].projects()).toEqual(['banana', 'charlie']);
-            expect(sorted[1].projects()).toEqual(['zebra', 'apple']);
-        });
-
-        test('case sensitive sorting when option is enabled', () => {
-            const todos = [
-                parseTodo('Task with +Zebra project'),
-                parseTodo('Task with +apple project'),
-                parseTodo('Task with +Banana project')
-            ];
-
-            const sorted = sortTodosByProject(todos, { caseSensitive: true });
-            
-            // Case sensitive: lowercase letters come before uppercase in localeCompare
-            expect(sorted[0].projects()).toEqual(['apple']);
-            expect(sorted[1].projects()).toEqual(['Banana']);
-            expect(sorted[2].projects()).toEqual(['Zebra']);
-        });
-
-        test('case insensitive sorting by default', () => {
-            const todos = [
-                parseTodo('Task with +Zebra project'),
-                parseTodo('Task with +apple project'),
-                parseTodo('Task with +Banana project')
-            ];
-
-            const sorted = sortTodosByProject(todos);
-            
-            expect(sorted[0].projects()).toEqual(['apple']);
-            expect(sorted[1].projects()).toEqual(['Banana']);
-            expect(sorted[2].projects()).toEqual(['Zebra']);
+        
+        const caseSensitivityTests = [
+            {
+                name: 'case sensitive sorting when option is enabled',
+                caseSensitive: true,
+                expected: [['apple'], ['Banana'], ['Zebra']]
+            },
+            {
+                name: 'case insensitive sorting by default',
+                caseSensitive: false,
+                expected: [['apple'], ['Banana'], ['Zebra']]
+            }
+        ];
+        
+        caseSensitivityTests.forEach(({ name, caseSensitive, expected }) => {
+            it(name, () => {
+                const todos = createTestTodos(['Task with +Zebra project', 'Task with +apple project', 'Task with +Banana project']);
+                const sorted = sortTodosByProject(todos, { caseSensitive });
+                sorted.forEach((todo, index) => {
+                    expect(todo.projects()).toEqual(expected[index]);
+                });
+            });
         });
     });
-
     describe('sortTodosByContext', () => {
-        test('sorts tasks by context name alphabetically', () => {
-            const todos = [
-                parseTodo('Task with @work context'),
-                parseTodo('Task with @home context'),
-                parseTodo('Task with @phone context'),
-                parseTodo('Task without context')
-            ];
-
-            const sorted = sortTodosByContext(todos);
-            
-            expect(sorted[0].contexts()).toEqual(['home']);
-            expect(sorted[1].contexts()).toEqual(['phone']);
-            expect(sorted[2].contexts()).toEqual(['work']);
-            expect(sorted[3].contexts()).toEqual([]);
-        });
-
-        test('handles multiple contexts by using first context', () => {
-            const todos = [
-                parseTodo('Task with @work @urgent contexts'),
-                parseTodo('Task with @home @weekend contexts')
-            ];
-
-            const sorted = sortTodosByContext(todos);
-            
-            expect(sorted[0].contexts()).toEqual(['home', 'weekend']);
-            expect(sorted[1].contexts()).toEqual(['work', 'urgent']);
+        const contextTests = [
+            {
+                name: 'alphabetically',
+                input: ['Task with @work context', 'Task with @home context', 'Task with @phone context', 'Task without context'],
+                expected: [['home'], ['phone'], ['work'], []]
+            },
+            {
+                name: 'multiple contexts by first context',
+                input: ['Task with @work @urgent contexts', 'Task with @home @weekend contexts'],
+                expected: [['home', 'weekend'], ['work', 'urgent']]
+            }
+        ];
+        
+        contextTests.forEach(({ name, input, expected }) => {
+            it(`should sort ${name}`, () => {
+                const todos = createTestTodos(input);
+                const sorted = sortTodosByContext(todos);
+                sorted.forEach((todo, index) => {
+                    expect(todo.contexts()).toEqual(expected[index]);
+                });
+            });
         });
     });
-
     describe('sortTodosByDueDate', () => {
-        test('sorts tasks by due date chronologically', () => {
-            const todos = [
-                parseTodo('Task due:2025-01-20'),
-                parseTodo('Task due:2025-01-15'),
-                parseTodo('Task due:2025-01-18'),
-                parseTodo('Task without due date')
-            ];
-
-            const sorted = sortTodosByDueDate(todos);
-            
-            expect(sorted[0].dueDate()).toBe('2025-01-15');
-            expect(sorted[1].dueDate()).toBe('2025-01-18');
-            expect(sorted[2].dueDate()).toBe('2025-01-20');
-            expect(sorted[3].dueDate()).toBeNull();
-        });
-
-        test('handles invalid dates by putting them last', () => {
-            const todos = [
-                parseTodo('Task due:2025-01-15'),
-                parseTodo('Task due:invalid-date'),
-                parseTodo('Task due:2025-01-10'),
-                parseTodo('Task without due date')
-            ];
-
-            const sorted = sortTodosByDueDate(todos);
-            
-            expect(sorted[0].dueDate()).toBe('2025-01-10');
-            expect(sorted[1].dueDate()).toBe('2025-01-15');
-            expect(sorted[2].dueDate()).toBe('invalid-date');
-            expect(sorted[3].dueDate()).toBeNull();
-        });
-
-        test('puts tasks without due date last', () => {
-            const todos = [
-                parseTodo('Task without due date'),
-                parseTodo('Task due:2025-01-15'),
-                parseTodo('Another task without due date')
-            ];
-
-            const sorted = sortTodosByDueDate(todos);
-            
-            expect(sorted[0].dueDate()).toBe('2025-01-15');
-            expect(sorted[1].dueDate()).toBeNull();
-            expect(sorted[2].dueDate()).toBeNull();
+        const dueDateTests = [
+            {
+                name: 'chronologically',
+                input: ['Task due:2025-01-20', 'Task due:2025-01-15', 'Task due:2025-01-18', 'Task without due date'],
+                expected: ['2025-01-15', '2025-01-18', '2025-01-20', null]
+            },
+            {
+                name: 'invalid dates last',
+                input: ['Task due:2025-01-15', 'Task due:invalid-date', 'Task due:2025-01-10', 'Task without due date'],
+                expected: ['2025-01-10', '2025-01-15', 'invalid-date', null]
+            },
+            {
+                name: 'tasks without due date last',
+                input: ['Task without due date', 'Task due:2025-01-15', 'Another task without due date'],
+                expected: ['2025-01-15', null, null]
+            }
+        ];
+        
+        dueDateTests.forEach(({ name, input, expected }) => {
+            it(`should sort ${name}`, () => {
+                const todos = createTestTodos(input);
+                const sorted = sortTodosByDueDate(todos);
+                sorted.forEach((todo, index) => {
+                    expect(todo.dueDate()).toBe(expected[index]);
+                });
+            });
         });
     });
-
     describe('Complex sorting scenarios', () => {
-        test('all sort functions preserve original todo objects', () => {
-            const originalTodos = [
-                parseTodo('(B) Task with +project @context due:2025-01-15'),
-                parseTodo('(A) Another task')
-            ];
-
+        it('all sort functions preserve original todo objects', () => {
+            const originalTodos = createTestTodos([
+                '(B) Task with +project @context due:2025-01-15',
+                '(A) Another task'
+            ]);
             const sortedByPriority = sortTodosByPriority(originalTodos);
             const sortedByProject = sortTodosByProject(originalTodos);
             const sortedByContext = sortTodosByContext(originalTodos);
             const sortedByDueDate = sortTodosByDueDate(originalTodos);
-
-            // Check that original objects are preserved (not cloned)
+            
             expect(sortedByPriority[0]).toBe(originalTodos[1]);
             expect(sortedByPriority[1]).toBe(originalTodos[0]);
-            
-            // All arrays should contain the same objects
-            expect(sortedByPriority).toHaveLength(2);
-            expect(sortedByProject).toHaveLength(2);
-            expect(sortedByContext).toHaveLength(2);
-            expect(sortedByDueDate).toHaveLength(2);
+            [sortedByPriority, sortedByProject, sortedByContext, sortedByDueDate].forEach(sorted => {
+                expect(sorted).toHaveLength(2);
+            });
         });
-
-        test('empty array handling', () => {
-            const empty: any[] = [];
-            
-            expect(sortTodosByPriority(empty)).toEqual([]);
-            expect(sortTodosByProject(empty)).toEqual([]);
-            expect(sortTodosByContext(empty)).toEqual([]);
-            expect(sortTodosByDueDate(empty)).toEqual([]);
-        });
-
-        test('single item array handling', () => {
-            const singleTodo = [parseTodo('(A) Single task +project @context due:2025-01-15')];
-            
-            expect(sortTodosByPriority(singleTodo)).toHaveLength(1);
-            expect(sortTodosByProject(singleTodo)).toHaveLength(1);
-            expect(sortTodosByContext(singleTodo)).toHaveLength(1);
-            expect(sortTodosByDueDate(singleTodo)).toHaveLength(1);
-            
-            expect(sortTodosByPriority(singleTodo)[0]).toBe(singleTodo[0]);
+        
+        const edgeCaseTests = [
+            {
+                name: 'empty array handling',
+                input: [],
+                expected: []
+            },
+            {
+                name: 'single item array handling',
+                input: ['(A) Single task +project @context due:2025-01-15'],
+                expected: { length: 1, preserveIdentity: true }
+            }
+        ];
+        
+        edgeCaseTests.forEach(({ name, input, expected }) => {
+            it(name, () => {
+                const todos = createTestTodos(input);
+                const sortFunctions = [sortTodosByPriority, sortTodosByProject, sortTodosByContext, sortTodosByDueDate];
+                
+                sortFunctions.forEach(sortFn => {
+                    const sorted = sortFn(todos);
+                    if (Array.isArray(expected)) {
+                        expect(sorted).toEqual(expected);
+                    } else {
+                        expect(sorted).toHaveLength(expected.length);
+                        if (expected.preserveIdentity && todos.length > 0) {
+                            expect(sorted[0]).toBe(todos[0]);
+                        }
+                    }
+                });
+            });
         });
     });
 });
