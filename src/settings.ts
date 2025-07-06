@@ -40,6 +40,7 @@ export interface TodoTxtSettings {
     
     enableRecurringTasks: boolean;
     enableAutoCompletionDate: boolean;
+    enableRecurringTaskCreationDate: boolean;
 }
 
 export const DEFAULT_SETTINGS: TodoTxtSettings = {
@@ -73,7 +74,8 @@ export const DEFAULT_SETTINGS: TodoTxtSettings = {
     recurringTaskColor: "#FF5722",
     
     enableRecurringTasks: true,
-    enableAutoCompletionDate: true
+    enableAutoCompletionDate: true,
+    enableRecurringTaskCreationDate: false
 }
 
 export class TodoTxtSettingTab extends PluginSettingTab {
@@ -286,6 +288,17 @@ export class TodoTxtSettingTab extends PluginSettingTab {
                     this.plugin.settings.enableRecurringTasks = false;
                 }
             });
+        
+        new Setting(containerEl)
+            .setName('Add creation date to recurring tasks')
+            .setDesc('Automatically add creation date when creating new recurring tasks.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableRecurringTaskCreationDate)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableRecurringTaskCreationDate = value;
+                    await this.plugin.saveSettings();
+                })
+            );
         
         new Setting(containerEl).setHeading().setName('Sort settings');
         
