@@ -152,7 +152,10 @@ export function createTaskWatcher(
                 return null;
             }
             
-            return getNextRecurringTask(todo as TodoInterfaceWithPositions);
+            const settings = getSettings();
+            return getNextRecurringTask(todo as TodoInterfaceWithPositions, {
+                enableRecurringTaskCreationDate: settings.enableRecurringTaskCreationDate
+            });
         }
         
         insertNewTask(view: CMEditorView, position: number, task: TodoInterface) {

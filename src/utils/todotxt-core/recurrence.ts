@@ -72,7 +72,11 @@ export function getCurrentDate(): string {
     return `${year}-${month}-${day}`;
 }
 
-export function getNextRecurringTask(todo: TodoInterfaceWithPositions): TodoInterface | null {
+export interface RecurrenceOptions {
+    enableRecurringTaskCreationDate?: boolean;
+}
+
+export function getNextRecurringTask(todo: TodoInterfaceWithPositions, options?: RecurrenceOptions): TodoInterface | null {
     const keyValues = todo.keyValues();
     const recValue = keyValues.rec;
     
@@ -104,8 +108,10 @@ export function getNextRecurringTask(todo: TodoInterfaceWithPositions): TodoInte
         newTaskStr += `(${originalPriority}) `;
     }
     
-    // Use completion date as creation date for new recurring task
-    newTaskStr += `${completionDate} `;
+    // Add creation date only if enabled in options
+    if (options?.enableRecurringTaskCreationDate) {
+        newTaskStr += `${completionDate} `;
+    }
     
     newTaskStr += todo.task();
     

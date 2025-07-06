@@ -36,7 +36,8 @@ const mockSettings: TodoTxtSettings = {
     highlightRecurringTask: true,
     recurringTaskColor: '#FF5722',
     enableRecurringTasks: true,
-    enableAutoCompletionDate: true
+    enableAutoCompletionDate: true,
+    enableRecurringTaskCreationDate: false
 };
 const mockIsTodoTxtFile = (path: string) => path === 'todo.md';
 const mockGetSettings = () => mockSettings;
@@ -298,6 +299,7 @@ describe('TaskWatcher', () => {
         });
         it('should insert completion date and generate new recurring task with current date as creation date', async () => {
             mockSettings.enableAutoCompletionDate = true;
+            mockSettings.enableRecurringTaskCreationDate = true;
             const state = EditorState.create({
                 doc: '2023-12-20 Recurring task rec:d due:2025-07-02',
                 extensions: [taskWatcherPlugin]
@@ -318,6 +320,7 @@ describe('TaskWatcher', () => {
         it('should place new recurring task before completed task in document', async () => {
             mockSettings.enableAutoCompletionDate = true;
             mockSettings.enableRecurringTasks = true;
+            mockSettings.enableRecurringTaskCreationDate = true;
             const state = EditorState.create({
                 doc: '2025-07-01 hoge rec:d due:2025-07-03',
                 extensions: [taskWatcherPlugin]

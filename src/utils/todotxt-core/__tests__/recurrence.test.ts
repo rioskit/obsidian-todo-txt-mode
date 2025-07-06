@@ -172,7 +172,7 @@ describe('getNextRecurringTask', () => {
     nextTaskTests.forEach(({ name, input, expectations }) => {
         it(`should handle ${name}`, () => {
             const todo = parseTodo(input);
-            const next = getNextRecurringTask(todo);
+            const next = getNextRecurringTask(todo, { enableRecurringTaskCreationDate: true });
             expect(next).not.toBeNull();
             
             if (expectations.task) expect(next!.task()).toBe(expectations.task);
@@ -188,6 +188,22 @@ describe('getNextRecurringTask', () => {
                     expect(next!.keyValues()[key]).toBe(value);
                 });
             }
+        });
+    });
+    
+    describe('creation date control', () => {
+        it('should not add creation date when enableRecurringTaskCreationDate is false', () => {
+            const todo = parseTodo('x 2023-05-08 Task rec:d due:2023-05-08');
+            const next = getNextRecurringTask(todo, { enableRecurringTaskCreationDate: false });
+            expect(next).not.toBeNull();
+            expect(next!.creationDate()).toBeNull();
+        });
+        
+        it('should add creation date when enableRecurringTaskCreationDate is true', () => {
+            const todo = parseTodo('x 2023-05-08 Task rec:d due:2023-05-08');
+            const next = getNextRecurringTask(todo, { enableRecurringTaskCreationDate: true });
+            expect(next).not.toBeNull();
+            expect(next!.creationDate()).toBe('2023-05-08');
         });
     });
 });
