@@ -37,7 +37,8 @@ const mockSettings: TodoTxtSettings = {
     recurringTaskColor: '#FF5722',
     enableRecurringTasks: true,
     enableAutoCompletionDate: true,
-    enableRecurringTaskCreationDate: false
+    enableRecurringTaskCreationDate: false,
+    highlightDoneFile: true
 };
 const mockIsTodoTxtFile = (path: string) => path === 'todo.md';
 const mockGetSettings = () => mockSettings;
