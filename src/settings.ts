@@ -41,6 +41,7 @@ export interface TodoTxtSettings {
     enableRecurringTasks: boolean;
     enableAutoCompletionDate: boolean;
     enableRecurringTaskCreationDate: boolean;
+    highlightDoneFile: boolean;
 }
 
 export const DEFAULT_SETTINGS: TodoTxtSettings = {
@@ -75,7 +76,8 @@ export const DEFAULT_SETTINGS: TodoTxtSettings = {
     
     enableRecurringTasks: true,
     enableAutoCompletionDate: true,
-    enableRecurringTaskCreationDate: false
+    enableRecurringTaskCreationDate: false,
+    highlightDoneFile: true
 }
 
 export class TodoTxtSettingTab extends PluginSettingTab {
@@ -174,6 +176,13 @@ export class TodoTxtSettingTab extends PluginSettingTab {
             'File to store completed tasks (relative to vault root)',
             'e.g. /done.md',
             'doneFilePath'
+        );
+        
+        this.createHighlightSetting(
+            containerEl,
+            'Highlight done file',
+            'Apply syntax highlighting to completed tasks file',
+            'highlightDoneFile'
         );
         
         new Setting(containerEl).setHeading().setName('Highlighting');

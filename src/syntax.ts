@@ -35,6 +35,11 @@ export function createTodoTxtExtension(app: App, isTodoTxtFile: (path: string) =
                 return Decoration.none;
             }
             
+            // Check if highlighting is disabled for done file
+            if (file.path === settings.doneFilePath && !settings.highlightDoneFile) {
+                return Decoration.none;
+            }
+            
             if (file.path !== this.lastFile) {
                 this.lastFile = file.path;
             }

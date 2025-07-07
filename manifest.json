@@ -1,7 +1,7 @@
 {
 	"id": "todo-txt-mode",
 	"name": "Todo.txt Mode",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"minAppVersion": "1.8.0",
 	"description": "Support for todo.txt file format with syntax highlighting and task management",
 	"author": "Riosk It",
